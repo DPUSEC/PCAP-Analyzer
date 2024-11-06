@@ -1,22 +1,16 @@
 package types
 
 const (
-	Success                     = "Success"
-	Fail                        = "Fail"
-	ErrorIdenticalPriorityValue = "IdenticalPriorityValues"
+	Success = true
+	Fail    = false
 )
 
 type SuccessResponse struct {
-	Code    string `json:"code" example:"Success"`
+	Status  bool   `json:"status" example:"true"`
 	Message string `json:"message"`
 }
 
 type FailResponse struct {
-	Code    string `json:"code" example:"Fail"`
+	Status  bool   `json:"status" example:"false"`
 	Message string `json:"message"`
-}
-
-type ErrIdenticalPriorityValue struct {
-	Code    string `json:"code" example:"IdenticalPriorityValues"`
-	Message string `json:"message" example:"Identical priority values are not allowed"`
 }
