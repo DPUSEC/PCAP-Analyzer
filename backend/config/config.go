@@ -4,8 +4,6 @@ import (
 	"pcap-analyzer/internal/utils"
 )
 
-const Version = "v0.0.1"
-
 type Env struct {
 	Debug       bool
 	MaxFileSize int

@@ -10,7 +10,5 @@ func main() {
 	utils.InitializeLogger()
 	slog.Info("Starting backend service")
 
-	api := api.NewApi()
-
 	api.StartApiServer()
 }
