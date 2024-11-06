@@ -1,0 +1,31 @@
+definitions:
+  api.Version.Response:
+    properties:
+      code:
+        example: Success
+        type: string
+      message:
+        type: string
+      version:
+        example: v1.0.0
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /version:
+    get:
+      consumes:
+      - text/plain
+      description: Get version of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/api.Version.Response'
+      summary: Get version
+      tags:
+      - Basics
+swagger: "2.0"
