@@ -15,7 +15,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 	if err != nil {
 		slog.Error("Token not found", "error", err)
 		c.JSON(http.StatusUnauthorized, types.FailResponse{
-			Code:    types.Fail,
+			Status:  types.Fail,
 			Message: "Token not found.",
 		})
 		c.Abort()
@@ -27,7 +27,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 	if err != nil {
 		slog.Error("Token verification failed", "error", err)
 		c.JSON(http.StatusUnauthorized, types.FailResponse{
-			Code:    types.Fail,
+			Status:  types.Fail,
 			Message: "Token verification failed.",
 		})
 		c.Abort()

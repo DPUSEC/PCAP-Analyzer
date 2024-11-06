@@ -34,7 +34,7 @@ func Version(c *gin.Context) {
 
 	r := Response{
 		SuccessResponse: types.SuccessResponse{
-			Code:    types.Success,
+			Status:  types.Success,
 			Message: "Successfully retrieved version",
 		},
 		Version: constants.Version,

@@ -5,11 +5,13 @@ import (
 )
 
 type Env struct {
-	Debug       bool
-	MaxFileSize int
-	ApiHost     string
-	ApiPort     string
-	ApiPrefix   string
+	Debug              bool
+	MaxFileSize        int
+	ApiHost            string
+	ApiPort            string
+	ApiPrefix          string
+	DBConnectionString string
+	DBName             string
 }
 
 func GetEnv() (e Env) {
@@ -18,6 +20,8 @@ func GetEnv() (e Env) {
 	e.ApiHost = utils.GetEnvWithDefault("API_HOST", "http://127.0.0.1")
 	e.ApiPort = utils.GetEnvWithDefault("API_PORT", "8000")
 	e.ApiPrefix = utils.GetEnvWithDefault("API_PREFIX", "/api/v1")
+	e.DBConnectionString = utils.GetEnvWithDefault("MONGODB_CONNECTION_STRING", "mongodb://127.0.0.1:27017/")
+	e.DBName = utils.GetEnvWithDefault("MONGODB_DATABASE_NAME", "pcap-analyzer")
 
 	return e
 }
