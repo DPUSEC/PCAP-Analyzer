@@ -15,6 +15,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/login": {
+            "post": {
+                "description": "Login to the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.Login.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/api.Login.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid username or password",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "An error occurred, please try again later",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/version": {
             "get": {
                 "description": "Get version of the service",
@@ -40,6 +86,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.Login.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.Login.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "Success"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "ey......"
+                }
+            }
+        },
         "api.Version.Response": {
             "type": "object",
             "properties": {
@@ -53,6 +130,18 @@ const docTemplate = `{
                 "version": {
                     "type": "string",
                     "example": "v1.0.0"
+                }
+            }
+        },
+        "types.FailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "Fail"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         }

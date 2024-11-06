@@ -1,4 +1,25 @@
 definitions:
+  api.Login.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  api.Login.Response:
+    properties:
+      code:
+        example: Success
+        type: string
+      message:
+        type: string
+      token:
+        example: ey......
+        type: string
+    type: object
   api.Version.Response:
     properties:
       code:
@@ -10,9 +31,47 @@ definitions:
         example: v1.0.0
         type: string
     type: object
+  types.FailResponse:
+    properties:
+      code:
+        example: Fail
+        type: string
+      message:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login to the system
+      parameters:
+      - description: Login request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.Login.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/api.Login.Response'
+        "400":
+          description: Invalid username or password
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      summary: Login
+      tags:
+      - Auth
   /version:
     get:
       consumes:
