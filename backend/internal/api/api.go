@@ -64,10 +64,13 @@ func StartApiServer() {
 		AllowOrigins: []string{"*"},
 	}))
 
-	// Endpoints
-	r.GET(prefix+"/version", middleware.AuthenticateMiddleware, Version)
+	// Auth Endpoints
 	r.POST(prefix+"/login", routes.Login)
 	r.POST(prefix+"/register", routes.Register)
+	r.GET(prefix+"/version", middleware.AuthenticateMiddleware, Version)
+
+	// Analyze Endpoints
+	r.POST(prefix+"/analyze", middleware.AuthenticateMiddleware, routes.Analyze)
 
 	err := r.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
