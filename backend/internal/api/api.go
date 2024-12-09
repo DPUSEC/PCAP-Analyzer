@@ -62,6 +62,7 @@ func StartApiServer() {
 	// CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
 	}))
 
 	// Endpoints
