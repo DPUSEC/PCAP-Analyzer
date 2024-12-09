@@ -3,12 +3,12 @@
     <h2>Create an Account</h2>
     <form @submit.prevent="handleSignup">
       <div class="form-group">
-        <label for="email">Email:</label>
+        <label for="username">Username:</label>
         <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="Enter your email address"
+          type="text"
+          id="username"
+          v-model="username"
+          placeholder="Enter your username"
           required
         />
       </div>
@@ -32,25 +32,25 @@
 export default {
   data() {
     return {
-      email: "",
+      username: "",
       password: "",
       errorMessage: "",
     };
   },
   methods: {
     async handleSignup() {
-      if (!this.email || !this.password) {
+      if (!this.username || !this.password) {
         this.errorMessage = "All fields are required.";
         return;
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/signup", {
+        const response = await fetch("http://localhost:8000/api/v1/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: this.email, password: this.password }),
+          body: JSON.stringify({ username: this.username, password: this.password }),
         });
 
         if (!response.ok) {

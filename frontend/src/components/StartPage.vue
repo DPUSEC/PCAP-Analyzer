@@ -1,8 +1,9 @@
 <template>
   <div class="start">
-    <h1>Hoşgeldiniz</h1>
-    <p>Giriş yapmak için aşağıdaki butona tıklayın.</p>
-    <button @click="goToLogin">Giriş Yap</button>
+    <img src="@/assets/vasak1.png" alt="Logo" class="logo" />
+    <h1>Welcome</h1>
+    <p>Click the button below to log in.</p>
+    <button @click="goToLogin">Log In</button>
   </div>
 </template>
 
@@ -11,7 +12,7 @@ export default {
   name: 'StartPage',
   methods: {
     goToLogin() {
-      // /login sayfasına yönlendirme
+      // Redirect to the /login page
       this.$router.push('/login');
     }
   }
@@ -29,5 +30,8 @@ button {
 }
 button:hover {
   background-color: #45a049;
+}
+img{
+  width: 200px;
 }
 </style>

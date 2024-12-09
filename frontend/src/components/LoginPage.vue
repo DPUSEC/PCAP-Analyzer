@@ -28,10 +28,16 @@
     <p class="signup-link">
       Don't have an account? <router-link to="/signup">Create an account</router-link>
     </p>
+    <p class="forgot-password-link">
+      <router-link to="/forgot-password">Forgot your password?</router-link>
+    </p>
   </div>
 </template>
 
 <script>
+// login.js dosyasını import ediyoruz
+import { login } from '@/services/login.js'; // services/login.js dosyasını import ettik
+
 export default {
   data() {
     return {
@@ -48,28 +54,10 @@ export default {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/v1/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username: this.username, password: this.password }),
-        });
+        const data = await login(this.username, this.password);
 
-        if (!response.ok) {
-          throw new Error("Login failed. Please check your credentials.");
-        }
-
-        const data = await response.json();
-        
-        if (data.code === "Success") {
-          // Başarı durumunda token'ı kaydediyoruz
-          localStorage.setItem("authToken", data.token);
-          // Dashboard'a yönlendiriyoruz
-          this.$router.push("/dashboard");
-        } else {
-          this.errorMessage = data.message;
-        }
+        console.log("Login successful:", data);
+        this.$router.push("/dashboard"); // Giriş başarılıysa yönlendir
       } catch (error) {
         this.errorMessage = error.message || "An error occurred.";
       }
@@ -79,6 +67,7 @@ export default {
 </script>
 
 <style scoped>
+/* Stil kısmı değişmeden devam edebilir */
 .login-container {
   max-width: 400px;
   margin: 50px auto;
@@ -123,6 +112,19 @@ button:hover {
   text-decoration: none;
 }
 .signup-link a:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-link {
+  margin-top: 15px;
+}
+
+.forgot-password-link a {
+  color: #4caf50;
+  text-decoration: none;
+}
+
+.forgot-password-link a:hover {
   text-decoration: underline;
 }
 </style>

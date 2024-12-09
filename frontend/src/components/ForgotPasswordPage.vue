@@ -3,12 +3,12 @@
     <h2>Forgot Your Password?</h2>
     <form @submit.prevent="handlePasswordReset">
       <div class="form-group">
-        <label for="email">Enter your email:</label>
+        <label for="username">Enter your username:</label>
         <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="Enter your email address"
+          type="text"
+          id="username"
+          v-model="username"
+          placeholder="Enter your username"
           required
         />
       </div>
@@ -25,29 +25,28 @@
 export default {
   data() {
     return {
-      email: '',
+      username: '',
       errorMessage: '',
     };
   },
   methods: {
     async handlePasswordReset() {
-      if (!this.email) {
-        this.errorMessage = 'Please enter your email address.';
+      if (!this.username) {
+        this.errorMessage = 'Please enter your username.';
         return;
       }
 
       try {
-        // Here, we send the password reset request to the API
-        const response = await fetch('http://localhost:5000/api/reset-password', {
+        const response = await fetch('http://localhost:8000/api/v1/reset-password', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email: this.email }),
+          body: JSON.stringify({ username: this.username }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to reset password. Please check your email.');
+          throw new Error('Failed to reset password. Please check your username.');
         }
 
         const data = await response.json();
@@ -85,14 +84,14 @@ input {
 button {
   width: 100%;
   padding: 10px;
-  background-color: #4caf50; /* Green for reset button */
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 button:hover {
-  background-color: #45a049; /* Darker green when hovering */
+  background-color: #45a049;
 }
 .error {
   color: red;
