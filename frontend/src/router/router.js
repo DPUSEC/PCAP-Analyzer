@@ -5,6 +5,7 @@ import StartPage from '../components/StartPage.vue'
 import LoginPage from '../components/LoginPage.vue'
 import SignupPage from '@/components/SignupPage.vue'
 import ForgotPasswordPage from '@/components/ForgotPasswordPage'
+import DashboardPage from '@/components/DashboardPage.vue'
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: '/forgot-password',
     name: 'forgot-password',
     component: ForgotPasswordPage, // Şifre sıfırlama sayfasını buraya ekliyoruz
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
   }
 ]
 
