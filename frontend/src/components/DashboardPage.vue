@@ -2,23 +2,23 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <div class="dashboard" data-active-tab="uploads" v-if="is_authorized()">
         <div class="side-nav">
-            <button v-on:click="active_tab = 'uploads'">
+            <button v-on:click="active_tab = 'uploads'" :class="{ active: active_tab == 'uploads'}">
                 <span class="material-symbols-rounded">upload</span>
                 Uploads
             </button>
-            <button v-on:click="active_tab = 'guides'">
+            <button v-on:click="active_tab = 'guides'" :class="{ active: active_tab == 'guides'}">
                 <span class="material-symbols-rounded">developer_guide</span>
                 Guides
             </button>
-            <button v-on:click="active_tab = 'overview'" v-show="active_file != null">
+            <button v-on:click="active_tab = 'overview'" v-show="active_file != null" :class="{ active: active_tab == 'overview'}">
                 <span class="material-symbols-rounded">overview</span>
                 Overview
             </button>
-            <button v-on:click="active_tab = 'dns'" v-show="active_file != null">
+            <button v-on:click="active_tab = 'dns'" v-show="active_file != null" :class="{ active: active_tab == 'dns'}">
                 <span class="material-symbols-rounded">dns</span>
                 DNS
             </button>
-            <button v-on:click="active_tab = 'about'">
+            <button v-on:click="active_tab = 'about'" :class="{ active: active_tab == 'about'}">
                 <span class="material-symbols-rounded">info</span>
                 About
             </button>
@@ -147,6 +147,10 @@ button {
 
         & button {
             justify-content: flex-start;
+
+            &.active {
+                border-left: 4px solid color-mix(in srgb, orange, white);
+            }
         }
     }
 
