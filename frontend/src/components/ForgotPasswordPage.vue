@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import config from "@/config";
+
 export default {
   data() {
     return {
@@ -37,7 +39,7 @@ export default {
       }
 
       try {
-        const response = await fetch('http://localhost:8000/api/v1/reset-password', {
+        const response = await fetch(config.apiDomain + "/api/v1/reset-password", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
