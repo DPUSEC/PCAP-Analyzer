@@ -26,7 +26,7 @@
         <div class="tabs">
             <div class="tab uploads" v-if="active_tab == 'uploads'">
                 <div>
-                    <button>
+                    <button v-on:click="upload_file()">
                         <span class="material-symbols-rounded">upload_file</span>
                         Upload New PCAP
                     </button>
@@ -63,6 +63,39 @@
 export default {
     name: 'DashboardPage',
     methods: {
+        upload_file: function (){
+            var file_uploader = document.createElement("input");
+            file_uploader.type = "file";
+            file_uploader.click();
+            file_uploader.onchange = async () => {
+                let form_data = new FormData();
+                let file_reader = new FileReader();
+                const the_file = file_uploader.files[0];
+                file_reader.onload = async (file_read_event) => {
+                    const file_content = file_read_event.target.result;
+                    form_data.append("scanName", the_file.name);
+                    form_data.append("file", new Blob([file_content]), the_file.name);
+                    try {
+                        const response = await fetch("http://localhost:8000/api/v1/analyze", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                                "Authorization": localStorage.getItem("token")
+                            },
+                            body: form_data
+                        });
+                        console.warn(response);
+                    } catch(error) {
+                        console.error(error);
+                    }
+                    file_uploader.remove();
+                };
+                file_reader.readAsArrayBuffer(the_file);
+            };
+            file_uploader.oncancel = () => {
+                file_uploader.remove();
+            };
+        },
         is_authorized: function () {
             if(localStorage.getItem("token") == null){
                 this.$router.push("/login");
