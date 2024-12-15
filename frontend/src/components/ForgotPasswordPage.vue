@@ -82,6 +82,7 @@ input {
   margin-top: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 button {
   width: 100%;
