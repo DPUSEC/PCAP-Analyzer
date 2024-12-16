@@ -299,12 +299,12 @@ func Analyze(c *gin.Context) {
 		portScanDetectionArray []types.PortScanDetection
 		httpReqArray           []types.HttpReq
 		httpReqIPsArray        []types.HttpReqIPs
-		credentialsArray       []types.CredentialsInfo
-		fileTransferArray      []types.FileTransfer
-		rceArray               []types.RemoteCodeExecution
-		sqlInjectionArray      []types.SQLInjection
-		xssArray               []types.XSS
-		log4shellArray         []types.Log4Shell
+		credentialsArray       []types.GeneralCaptureStruct
+		fileTransferArray      []types.GeneralCaptureStruct
+		rceArray               []types.GeneralCaptureStruct
+		sqlInjectionArray      []types.GeneralCaptureStruct
+		xssArray               []types.GeneralCaptureStruct
+		log4shellArray         []types.GeneralCaptureStruct
 	)
 
 	// IP Yanıt Sayıları
@@ -338,6 +338,7 @@ func Analyze(c *gin.Context) {
 			Responses: usage["responses"],
 		})
 	}
+
 	// Port Kullanım İstatistikleri
 	if len(portStatsSlice) != 0 {
 		for _, stats := range portStatsSlice {
@@ -370,7 +371,7 @@ func Analyze(c *gin.Context) {
 	if len(credentialsInfo) > 0 {
 		for _, info := range credentialsInfo {
 			if utils.IsPrintable(info.Arg) && utils.IsPrintable(info.Command) {
-				credentialsArray = append(credentialsArray, types.CredentialsInfo{PacketID: info.PacketID, Source: info.SrcIP, Destination: info.DstIP, Command: info.Command, Arg: info.Arg})
+				credentialsArray = append(credentialsArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, Command: info.Command, Arg: info.Arg})
 			}
 		}
 	}
@@ -379,7 +380,7 @@ func Analyze(c *gin.Context) {
 	if len(fileTransferInfo) > 0 {
 		for _, info := range fileTransferInfo {
 			if utils.IsPrintable(info.Arg) && utils.IsPrintable(info.FileName) && utils.IsPrintable(info.Command) {
-				fileTransferArray = append(fileTransferArray, types.FileTransfer{PacketID: info.PacketID, Source: info.SrcIP, Dest: info.DstIP, Command: info.Command, Arg: info.Arg, FileName: info.FileName})
+				fileTransferArray = append(fileTransferArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, Command: info.Command, Arg: info.Arg, FileName: info.FileName})
 			}
 		}
 	}
@@ -387,8 +388,8 @@ func Analyze(c *gin.Context) {
 	// RCE
 	if len(rce) != 0 {
 		for _, info := range rce {
-			if utils.IsPrintable(info.Arg) && utils.IsPrintable(info.Command) {
-				rceArray = append(rceArray, types.RemoteCodeExecution{PacketID: info.PacketID, Source: info.SrcIP, Destination: info.DstIP, Command: info.Command, Arg: info.Arg})
+			if utils.IsPrintable(info.Arg) {
+				rceArray = append(rceArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, MatchedKeyword: info.MatchedKeyword, Arg: info.Arg})
 			}
 		}
 	}
@@ -397,7 +398,7 @@ func Analyze(c *gin.Context) {
 	if len(sql_injection) != 0 {
 		for _, info := range sql_injection {
 			if utils.IsPrintable(info.Arg) {
-				sqlInjectionArray = append(sqlInjectionArray, types.SQLInjection{PacketID: info.PacketID, Source: info.SrcIP, Destination: info.DstIP, Command: info.Command, Arg: info.Arg, MatchedKeyword: info.MatchedKeyword})
+				sqlInjectionArray = append(sqlInjectionArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, MatchedKeyword: info.MatchedKeyword, Arg: info.Arg})
 			}
 		}
 	}
@@ -406,7 +407,7 @@ func Analyze(c *gin.Context) {
 	if len(xss) != 0 {
 		for _, info := range xss {
 			if utils.IsPrintable(info.Arg) {
-				xssArray = append(xssArray, types.XSS{PacketID: info.PacketID, Source: info.SrcIP, Destination: info.DstIP, Command: info.Command, Arg: info.Arg})
+				xssArray = append(xssArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, MatchedKeyword: info.MatchedKeyword, Arg: info.Arg})
 			}
 		}
 	}
@@ -414,7 +415,7 @@ func Analyze(c *gin.Context) {
 	if len(log4shell) != 0 {
 		for _, info := range log4shell {
 			if utils.IsPrintable(info.Arg) {
-				log4shellArray = append(log4shellArray, types.Log4Shell{PacketID: info.PacketID, Source: info.SrcIP, Destination: info.DstIP, Arg: info.Arg, MatchedKeyword: info.MatchedKeyword})
+				log4shellArray = append(log4shellArray, types.GeneralCaptureStruct{PacketID: info.PacketID, SrcIP: info.SrcIP, SrcPort: info.SrcPort, DstIP: info.DstIP, DstPort: info.DstPort, MatchedKeyword: info.MatchedKeyword, Arg: info.Arg})
 			}
 		}
 	}

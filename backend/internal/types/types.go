@@ -79,54 +79,16 @@ type HttpReqIPs struct {
 	TotalRequestCount int
 }
 
-type CredentialsInfo struct {
-	PacketID    int
-	Source      string
-	Destination string
-	Command     string
-	Arg         string
-}
-
-type FileTransfer struct {
-	PacketID int
-	Source   string
-	Dest     string
-	Command  string
-	Arg      string
-	FileName string
-}
-
-type RemoteCodeExecution struct {
-	PacketID    int
-	Source      string
-	Destination string
-	Command     string
-	Arg         any
-}
-
-type SQLInjection struct {
+type GeneralCaptureStruct struct {
 	PacketID       int
-	Source         string
-	Destination    string
+	SrcIP          string
+	SrcPort        int
+	DstIP          string
+	DstPort        int
 	Command        string
 	Arg            string
-	MatchedKeyword string
-}
-
-type XSS struct {
-	PacketID    int
-	Source      string
-	Destination string
-	Command     string
-	Arg         string
-}
-
-type Log4Shell struct {
-	PacketID       int
-	Source         string
-	Destination    string
-	Arg            string
-	MatchedKeyword string
+	FileName       any
+	MatchedKeyword any
 }
 
 type ResponseStats struct {
