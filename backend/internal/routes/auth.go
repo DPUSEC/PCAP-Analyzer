@@ -18,22 +18,12 @@ import (
 // @Tags			Auth
 // @Accept			json
 // @Produce		application/json
-// @Param			body	body	api.Login.LoginRequest	true	"Login request"
-// @Success		200	{object}	api.Login.Response	"Success"
+// @Param			body	body	types.LoginRequest	true	"Login request"
+// @Success		200	{object}	types.LoginResponse	"Success"
 // @Failure		400	{object}	types.FailResponse	"Invalid username or password"
 // @Failure		500	{object}	types.FailResponse	"An error occurred, please try again later"
 // @Router			/login [post]
 func Login(c *gin.Context) {
-	type Response struct {
-		types.SuccessResponse
-		Token string `json:"token" example:"ey......"`
-	}
-
-	type LoginRequest struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
 	// Check if already authenticated
 	_, err := utils.ExtractBearerToken(c.GetHeader("Authorization"))
 	if err == nil {
@@ -45,7 +35,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	loginParams := LoginRequest{}
+	loginParams := types.LoginRequest{}
 	c.ShouldBindJSON(&loginParams)
 
 	// Set collection
@@ -71,7 +61,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	r := Response{
+	r := types.LoginResponse{
 		SuccessResponse: types.SuccessResponse{
 			Status:  types.Success,
 			Message: "Successfully logged in",
@@ -87,22 +77,13 @@ func Login(c *gin.Context) {
 // @Tags			Auth
 // @Accept			json
 // @Produce		application/json
-// @Param			body	body	api.Register.RegisterRequest	true	"Register request"
-// @Success		200	{object}	api.Register.Response	"Success"
+// @Param			body	body	types.RegisterRequest	true	"Register request"
+// @Success		200	{object}	types.RegisterResponse	"Success"
 // @Failure		400	{object}	types.FailResponse	"Already authenticated"
 // @Failure		409	{object}	types.FailResponse	"User already exists"
 // @Failure		500	{object}	types.FailResponse	"An error occurred, please try again later"
 // @Router			/register [post]
 func Register(c *gin.Context) {
-	type Response struct {
-		types.SuccessResponse
-		Token string `json:"token" example:"ey......"`
-	}
-
-	type RegisterRequest struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
 
 	// Check if already authenticated
 	_, err := utils.ExtractBearerToken(c.GetHeader("Authorization"))
@@ -115,7 +96,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	registerParams := RegisterRequest{}
+	registerParams := types.RegisterRequest{}
 	c.ShouldBindJSON(&registerParams)
 
 	// Check if the user already exists
@@ -156,7 +137,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	r := Response{
+	r := types.RegisterResponse{
 		SuccessResponse: types.SuccessResponse{
 			Status:  types.Success,
 			Message: "Successfully registered user.",

@@ -1,5 +1,24 @@
 definitions:
-  api.Login.LoginRequest:
+  api.Version.Response:
+    properties:
+      message:
+        type: string
+      status:
+        example: true
+        type: boolean
+      version:
+        example: v1.0.0
+        type: string
+    type: object
+  types.FailResponse:
+    properties:
+      message:
+        type: string
+      status:
+        example: false
+        type: boolean
+    type: object
+  types.LoginRequest:
     properties:
       password:
         type: string
@@ -9,39 +28,85 @@ definitions:
     - password
     - username
     type: object
-  api.Login.Response:
+  types.LoginResponse:
     properties:
-      code:
-        example: Success
-        type: string
       message:
         type: string
+      status:
+        example: true
+        type: boolean
       token:
         example: ey......
         type: string
     type: object
-  api.Version.Response:
+  types.RegisterRequest:
     properties:
-      code:
-        example: Success
+      password:
         type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  types.RegisterResponse:
+    properties:
       message:
         type: string
-      version:
-        example: v1.0.0
+      status:
+        example: true
+        type: boolean
+      token:
+        example: ey......
         type: string
     type: object
-  types.FailResponse:
+  types.SuccessResponse:
     properties:
-      code:
-        example: Fail
-        type: string
       message:
         type: string
+      status:
+        example: true
+        type: boolean
     type: object
 info:
   contact: {}
 paths:
+  /analyze:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Analyze a pcap file
+      parameters:
+      - description: PCAP file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Invalid file
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      security:
+      - BearerAuth: []
+      summary: Analyze
+      tags:
+      - Analyzer
   /login:
     post:
       consumes:
@@ -53,14 +118,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/api.Login.LoginRequest'
+          $ref: '#/definitions/types.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/api.Login.Response'
+            $ref: '#/definitions/types.LoginResponse'
         "400":
           description: Invalid username or password
           schema:
@@ -72,11 +137,51 @@ paths:
       summary: Login
       tags:
       - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register to the system
+      parameters:
+      - description: Register request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/types.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.RegisterResponse'
+        "400":
+          description: Already authenticated
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      summary: Register
+      tags:
+      - Auth
   /version:
     get:
       consumes:
       - text/plain
       description: Get version of the service
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -84,6 +189,8 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/api.Version.Response'
+      security:
+      - BearerAuth: []
       summary: Get version
       tags:
       - Basics
