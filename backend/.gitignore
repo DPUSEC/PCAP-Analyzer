@@ -26,3 +26,5 @@ go.work.sum
 
 .air.toml
 tmp
+
+uploads

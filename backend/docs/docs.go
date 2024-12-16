@@ -15,6 +15,62 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Analyze a pcap file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analyzer"
+                ],
+                "summary": "Analyze",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "PCAP file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid file",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "An error occurred, please try again later",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login to the system",
@@ -35,7 +91,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.Login.LoginRequest"
+                            "$ref": "#/definitions/types.LoginRequest"
                         }
                     }
                 ],
@@ -43,7 +99,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/api.Login.Response"
+                            "$ref": "#/definitions/types.LoginResponse"
                         }
                     },
                     "400": {
@@ -61,8 +117,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/register": {
+            "post": {
+                "description": "Register to the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "Register request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Already authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already exists",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "An error occurred, please try again later",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/version": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get version of the service",
                 "consumes": [
                     "text/plain"
@@ -74,6 +187,15 @@ const docTemplate = `{
                     "Basics"
                 ],
                 "summary": "Get version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -86,7 +208,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.Login.LoginRequest": {
+        "api.Version.Response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "version": {
+                    "type": "string",
+                    "example": "v1.0.0"
+                }
+            }
+        },
+        "types.FailResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "types.LoginRequest": {
             "type": "object",
             "required": [
                 "password",
@@ -101,15 +251,15 @@ const docTemplate = `{
                 }
             }
         },
-        "api.Login.Response": {
+        "types.LoginResponse": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "Success"
-                },
                 "message": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "token": {
                     "type": "string",
@@ -117,31 +267,46 @@ const docTemplate = `{
                 }
             }
         },
-        "api.Version.Response": {
+        "types.RegisterRequest": {
             "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
             "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "Success"
-                },
-                "message": {
+                "password": {
                     "type": "string"
                 },
-                "version": {
-                    "type": "string",
-                    "example": "v1.0.0"
+                "username": {
+                    "type": "string"
                 }
             }
         },
-        "types.FailResponse": {
+        "types.RegisterResponse": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "Fail"
-                },
                 "message": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "token": {
+                    "type": "string",
+                    "example": "ey......"
+                }
+            }
+        },
+        "types.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         }

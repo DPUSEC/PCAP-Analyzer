@@ -24,6 +24,8 @@ import (
 // @Tags			Basics
 // @Accept			plain
 // @Produce		application/json
+// @Security 	BearerAuth
+// @param 		Authorization header string true "Authorization"
 // @Success		200	{object}	api.Version.Response	"Success"
 // @Router			/version [get]
 func Version(c *gin.Context) {
@@ -71,6 +73,7 @@ func StartApiServer() {
 	r.GET(prefix+"/version", middleware.AuthenticateMiddleware, Version)
 	r.POST(prefix+"/login", routes.Login)
 	r.POST(prefix+"/register", routes.Register)
+	r.POST(prefix+"/analyze", middleware.AuthenticateMiddleware, routes.Analyze)
 
 	err := r.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
