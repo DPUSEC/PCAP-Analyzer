@@ -69,18 +69,14 @@ export default {
             file_uploader.click();
             file_uploader.onchange = async () => {
                 let form_data = new FormData();
-                let file_reader = new FileReader();
                 const the_file = file_uploader.files[0];
-                file_reader.onload = async (file_read_event) => {
-                    const file_content = file_read_event.target.result;
                     form_data.append("scanName", the_file.name);
-                    form_data.append("file", new Blob([file_content]), the_file.name);
+                    form_data.append("file", the_file);
                     try {
                         const response = await fetch("http://localhost:8000/api/v1/analyze", {
                             method: "POST",
                             headers: {
-                                "Content-Type": "multipart/form-data",
-                                "Authorization": localStorage.getItem("token")
+                                "Authorization": "Bearer " + localStorage.getItem("token")
                             },
                             body: form_data
                         });
@@ -88,9 +84,6 @@ export default {
                     } catch(error) {
                         console.error(error);
                     }
-                    file_uploader.remove();
-                };
-                file_reader.readAsArrayBuffer(the_file);
             };
             file_uploader.oncancel = () => {
                 file_uploader.remove();
