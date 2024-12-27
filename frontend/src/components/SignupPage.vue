@@ -47,7 +47,7 @@ export default {
       }
 
       try {
-        const response = await fetch(config.apiDomain + "/api/v1/signup", {
+        const response = await fetch(config.apiDomain + "/api/v1/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
