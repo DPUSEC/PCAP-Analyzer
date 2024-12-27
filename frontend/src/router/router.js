@@ -1,10 +1,10 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 // Bileşenlerin doğru konumda olduğundan emin olun
-import StartPage from '../components/StartPage.vue' 
-import LoginPage from '../components/LoginPage.vue'
+import StartPage from '@/components/StartPage.vue' 
+import LoginPage from '@/components/LoginPage.vue'
 import SignupPage from '@/components/SignupPage.vue'
-import ForgotPasswordPage from '@/components/ForgotPasswordPage'
+import ForgotPasswordPage from '@/components/ForgotPasswordPage.vue'
 import DashboardPage from '@/components/DashboardPage.vue'
 
 const routes = [

@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import config from "@/config";
+
 export default {
   data() {
     return {
@@ -45,7 +47,7 @@ export default {
       }
 
       try {
-        const response = await fetch("http://localhost:8000/api/v1/signup", {
+        const response = await fetch(config.apiDomain + "/api/v1/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -88,6 +90,7 @@ input {
   margin-top: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 button {
   width: 100%;

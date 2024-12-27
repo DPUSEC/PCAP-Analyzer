@@ -1,7 +1,9 @@
 // src/services/login.js
 
+import config from "@/config";
+
 export async function login(username, password) {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/login", {
+    const response = await fetch(config.apiDomain + "/api/v1/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
