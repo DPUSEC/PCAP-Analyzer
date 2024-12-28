@@ -36,5 +36,18 @@ func AuthenticateMiddleware(c *gin.Context) {
 
 	// TODO(ahmet): Token decode edildiği halde gerekli sectionlar var mı diye kontrol edilecek.
 
+	// set token values to context
+	claims := utils.ExtractClaims(tokenString)
+	if claims == nil {
+		slog.Error("Claims not found")
+		c.JSON(http.StatusUnauthorized, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Token verification failed.",
+		})
+		c.Abort()
+		return
+	}
+	c.Set("user_id", claims["sub"].(string))
+
 	c.Next()
 }

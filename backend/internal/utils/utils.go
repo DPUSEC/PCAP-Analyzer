@@ -73,9 +73,9 @@ func GetIntEnvWithDefault(key string, defaultValue int) int {
 	return intValue
 }
 
-func CreateJWTToken(username string) (string, error) {
+func CreateJWTToken(userid string) (string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": username,                                   // Subject (user identifier)
+		"sub": userid,                                     // Subject (user identifier)
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(), // Expiration time
 		"iat": time.Now().Unix(),                          // Issued at
 	})
@@ -115,4 +115,24 @@ func ExtractBearerToken(header string) (string, error) {
 	}
 
 	return jwtToken[1], nil
+}
+
+func ExtractClaims(tokenStr string) jwt.MapClaims {
+	hmacSecretString := constants.SecretKey
+	hmacSecret := []byte(hmacSecretString)
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// check token signing method etc
+		return hmacSecret, nil
+	})
+
+	if err != nil {
+		return nil
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims
+	} else {
+		slog.Error("Invalid JWT Token")
+		return nil
+	}
 }

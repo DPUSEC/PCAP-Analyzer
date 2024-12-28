@@ -2,16 +2,17 @@ package schemas
 
 import (
 	"pcap-analyzer/internal/types"
+	"time"
 )
 
 // Analyze modeli
 type Analyze struct {
-	ID         string `bson:"_id,omitempty"`
-	FileName   string `bson:"file_name"`
-	FilePath   string `bson:"file_path"`
-	UploadedAt string `bson:"uploaded_at"`
-	AnalyzedAt string `bson:"analyzed_at"`
-	UserID     string `bson:"user_id"`
+	ID         string    `bson:"_id,omitempty"`
+	FileName   string    `bson:"file_name"`
+	FilePath   string    `bson:"file_path"`
+	UploadedAt time.Time `bson:"uploaded_at"`
+	AnalyzedAt time.Time `bson:"analyzed_at"`
+	UserID     string    `bson:"user_id"`
 
 	// Status: 0: Uploaded, 1: Analyzed, 2: Error
 	Status                   int                          `bson:"status"`
