@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"math/rand"
 	"os"
 	"os/exec"
 	"pcap-analyzer/internal/types"
 	"strings"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 func IsPrintable(s string) bool { //Print edilebilir karakterler için kontrol fonksiyonu
@@ -43,34 +45,45 @@ func ExtractCommandAndArg(payload string, keyword string) (string, string) { //K
 }
 
 // extractFilesUsingTshark, TShark komutunu kullanarak PCAP dosyasındaki tum protokoller uzerinden dosya cikarir
-func ExtractFilesUsingTshark(pcapFilePath, outputDir string, exportFiles []string) {
+func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList []string) {
 	// Cikti dizini yoksa olusturuluyor
 	err := os.MkdirAll(outputDir, os.ModePerm)
 	if err != nil {
-		log.Fatalf("Cikti dizini olusturulurken hata olustu: %v", err)
+		slog.Error("Cikti dizini olusturulurken hata olustu.")
 	}
-	for a := range exportFiles {
+	tsharkProtocols := []string{"dicom", "ftp-data", "http", "imf", "smb", "tftp"}
+	for a := range tsharkProtocols {
 		// TShark komutunu olusturuyoruz: Protokol belirtmeden tum protokoller icin dosya cikar
-		tsharkCmd := fmt.Sprintf("cd tshark && tshark -r %s --export-objects %s,%s", pcapFilePath, exportFiles[a], outputDir)
+		tsharkCmd := fmt.Sprintf("tshark -r %s --export-objects %s,%s", pcapFilePath, tsharkProtocols[a], outputDir)
 
 		// Windows'ta cmd komutunu calistiriyoruz
 		cmd := exec.Command("cmd", "/C", tsharkCmd) // Windows icin cmd kullaniyoruz
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &out
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("TShark komutunu calistirirken hata olustu: %v\n%s", err, out.String())
-		}
-
-		// Ciktiyi kontrol et
-		if out.Len() > 0 {
-			fmt.Println("Disa aktarilan dosyalar:")
-			fmt.Println(out.String())
-		} else {
-			fmt.Println("PCAP dosyasindan dosya cikarilamadi.")
-		}
+		cmd.Run()
 	}
+
+	// Get exported file list
+	exportedFiles, err := os.ReadDir(outputDir)
+	if err != nil {
+		slog.Error("Cikti dizininde dosya listesi alinirken hata olustu.")
+	}
+	for _, file := range exportedFiles {
+		// Rename files to random UUID's
+		newFileName := GenerateFileNameWithExtension(file.Name())
+		err := os.Rename(outputDir+"/"+file.Name(), outputDir+"/"+newFileName)
+		if err != nil {
+			slog.Error("Dosya adi degistirilirken hata olustu.")
+		}
+		exportedFileList = append(exportedFileList, newFileName)
+	}
+	return exportedFileList
+}
+
+func GenerateFileNameWithExtension(fileName string) string {
+	temp := strings.Split(fileName, ".")
+	return uuid.New().String() + "." + temp[len(temp)-1]
 }
 
 func GetPortList(ports map[int]struct{}) []int {

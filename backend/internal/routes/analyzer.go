@@ -250,6 +250,10 @@ func Analyze(c *gin.Context) {
 	if _, err := os.Stat(userFolder); os.IsNotExist(err) {
 		os.Mkdir(userFolder, 0755)
 	}
+	var exportFolder string = userFolder + "/extracted_files"
+	if _, err := os.Stat(exportFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
 
 	c.SaveUploadedFile(file, userFolder+"/"+uploadedFileName)
 	uploadedTime := time.Now()
@@ -609,8 +613,14 @@ func Analyze(c *gin.Context) {
 		}
 	}
 
+	// Extract files
+	outputExportFolder := userFolder + "/" + uploadedFileName + "_files"
+	if _, err := os.Stat(outputExportFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+	exportedFiles := utils.ExtractFilesUsingTshark(userFolder+"/"+uploadedFileName, outputExportFolder)
+
 	// Save results to mongodb
-	// TODO(ahmet): Analiz ve upload tarihleri farklı olabilir, sonra ilgilenilecek.
 	database.DB.SetCollection("analysis")
 
 	newAnalysis := schemas.Analyze{
@@ -642,8 +652,13 @@ func Analyze(c *gin.Context) {
 		return
 	}
 
+	var exportedFileUrls []string
+	for _, file := range exportedFiles {
+		exportedFileUrls = append(exportedFileUrls, config.GetEnv().ApiPrefix+"/analysis/"+insertResult.InsertedID.(primitive.ObjectID).Hex()+"/files/"+file+"/download")
+	}
+
 	uploadedFilePath := config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex() + "/download"
-	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath}})
+	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath, "exported_files": exportedFiles}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -651,7 +666,6 @@ func Analyze(c *gin.Context) {
 		})
 		return
 	}
-	slog.Debug("Inserted an analysis.", "analysis", insertResult.InsertedID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"Status":           types.Success,
@@ -672,7 +686,9 @@ func Analyze(c *gin.Context) {
 			"XSS":               xssArray,
 			"Log4Shell":         log4shellArray,
 		},
-		"FilePath": uploadedFilePath,
+		"FilePath":         uploadedFilePath,
+		"ExportedFileUrls": exportedFileUrls,
+		"ExportedFiles":    exportedFiles,
 	})
 }
 
@@ -723,6 +739,107 @@ func DownloadAnalysis(c *gin.Context) {
 	c.File("uploads/" + c.GetString("user_id") + "/" + analysis.FileName)
 }
 
+func GetExportedFiles(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	analyzeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid analyze ID",
+		})
+		return
+	}
+
+	var analysis schemas.Analyze
+	err = database.DB.FindOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")}, &analysis)
+	if err != nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	if analysis.ID == "" || len(analysis.ExportedFiles) == 0 {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	var exportedFileUrls []string
+	for _, file := range analysis.ExportedFiles {
+		exportedFileUrls = append(exportedFileUrls, config.GetEnv().ApiPrefix+"/analysis/"+analyzeId.Hex()+"/files/"+file+"/download")
+	}
+
+	// TODO(ahmet): Daha sonrasında doysanın meta bilgisini de döndürebiliriz,
+	// şimdilik sadece indirme URL'lerini ve isimlerini döndürüyoruz.
+	c.JSON(http.StatusOK, gin.H{
+		"Status":           types.Success,
+		"ExportedFileUrls": exportedFileUrls,
+		"ExportedFiles":    analysis.ExportedFiles,
+	})
+}
+
+// @Summary		Download exported file
+// @Description	Download exported file
+// @Tags		Analyzer
+// @Accept		application/octet-stream
+// @Produce		application/octet-stream
+// @Security 	BearerAuth
+// @Param		Authorization header string true "Bearer token for authorization"
+// @Param		id path string true "Analysis ID"
+// @Param		file path string true "File name"
+// @Success		200	{object}	types.SuccessResponse	"Success"
+// @Failure		400	{object}	types.FailResponse	"Invalid analyze ID"
+// @Failure		404	{object}	types.FailResponse	"Analysis not found"
+// @Router		/analysis/{id}/files/{file}/download [get]
+func DownloadExportedFile(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	analyzeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid analyze ID",
+		})
+		return
+	}
+
+	var analysis schemas.Analyze
+	err = database.DB.FindOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")}, &analysis)
+	if err != nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	if analysis.ID == "" {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	fileName := c.Param("file")
+	if fileName == "" {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid file",
+		})
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Type", "application/octet-stream")
+	c.File("uploads/" + c.GetString("user_id") + "/" + analysis.FileName + "_files/" + fileName)
+}
+
 // @Summary		Delete analysis
 // @Description	Delete analysis
 // @Tags		Analyzer
@@ -766,6 +883,7 @@ func DeleteAnalysis(c *gin.Context) {
 		return
 	}
 	os.Remove("uploads/" + c.GetString("user_id") + "/" + analysis.FileName)
+	os.RemoveAll("uploads/" + c.GetString("user_id") + "/" + analysis.FileName + "_files")
 
 	_, err = database.DB.DeleteOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")})
 	if err != nil {

@@ -74,10 +74,12 @@ func StartApiServer() {
 	r.POST(prefix+"/login", routes.Login)
 	r.POST(prefix+"/register", routes.Register)
 	r.GET(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.GetAnalysis)
+	r.POST(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.Analyze)
 	r.GET(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.GetAnalysisByID)
 	r.DELETE(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.DeleteAnalysis)
 	r.GET(prefix+"/analysis/:id/download", middleware.AuthenticateMiddleware, routes.DownloadAnalysis)
-	r.POST(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.Analyze)
+	r.GET(prefix+"/analysis/:id/files", middleware.AuthenticateMiddleware, routes.GetExportedFiles)
+	r.GET(prefix+"/analysis/:id/files/:file/download", middleware.AuthenticateMiddleware, routes.DownloadExportedFile)
 
 	err := r.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
