@@ -28,4 +28,5 @@ type Analyze struct {
 	SqlInjectionResults      []types.GeneralCaptureStruct `bson:"sql_injection_results"`
 	XssResults               []types.GeneralCaptureStruct `bson:"xss_results"`
 	Log4ShellResults         []types.GeneralCaptureStruct `bson:"log4shell_results"`
+	ExportedFiles            []string                     `bson:"exported_files"`
 }
