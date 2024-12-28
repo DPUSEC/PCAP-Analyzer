@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -16,6 +17,8 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"pcap-analyzer/config"
 	"pcap-analyzer/internal/database"
@@ -23,6 +26,186 @@ import (
 	"pcap-analyzer/internal/types"
 	"pcap-analyzer/internal/utils"
 )
+
+// @Summary     Get analysis
+// @Description Get analysis
+// @Tags        Analyzer
+// @Accept      json
+// @Produce     application/json
+// @Security    BearerAuth
+// @Param       Authorization header string true "Authorization header with Bearer token"
+// @Success     200 {object} types.SuccessResponse "Success"
+// @Failure     404 {object} types.FailResponse "Analysis not found"
+// @Failure     500 {object} types.FailResponse "An error occurred, please try again later"
+// @Router      /analysis [get]
+func GetAnalysis(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	type AnalysisResponse struct {
+		ID         string    `bson:"_id"`
+		FileName   string    `bson:"file_name"`
+		FilePath   string    `bson:"file_path"`
+		UploadedAt time.Time `bson:"uploaded_at"`
+		AnalyzedAt time.Time `bson:"analyzed_at"`
+	}
+
+	var analysis []AnalysisResponse
+	// Select only id, filename, filepath, uploadedat, analyzedat, fields
+	err := database.DB.FindWithProjection(bson.M{"user_id": c.GetString("user_id")}, bson.M{
+		"_id":         1,
+		"file_name":   1,
+		"file_path":   1,
+		"uploaded_at": 1,
+		"analyzed_at": 1,
+	}, &analysis)
+	if err != nil {
+		slog.Error("Failed to get analysis", "error", err)
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+
+	if analysis == nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"Status":   types.Success,
+		"Analysis": analysis,
+	})
+}
+
+// @Summary     Get analysis by ID
+// @Description Get analysis by ID
+// @Tags        Analyzer
+// @Accept      json
+// @Produce     application/json
+// @Param       id path string true "Analysis ID"
+// @Security    BearerAuth
+// @Param       Authorization header string true "Authorization header with Bearer token"
+// @Param	    category query string false "Category"
+// @Success     200 {object} types.SuccessResponse "Success"
+// @Failure     400 {object} types.FailResponse "Invalid analyze ID"
+// @Failure     404 {object} types.FailResponse "Analysis not found"
+// @Failure     500 {object} types.FailResponse "An error occurred, please try again later"
+// @Router      /analysis/{id} [get]
+func GetAnalysisByID(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	analyzeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid analyze ID",
+		})
+		return
+	}
+
+	var analysis schemas.Analyze
+	err = database.DB.FindOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")}, &analysis)
+	if err != nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	if analysis.ID == "" {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	switch c.Query("category") {
+	case "IpResponseResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"IpResponseResults": analysis.IpResponseResults},
+		})
+		return
+	case "IpRequestResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"IpRequestResults": analysis.IpRequestResults},
+		})
+		return
+	case "PortStatResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"PortStatResults": analysis.PortStatResults},
+		})
+		return
+	case "PortScanDetectionResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"PortScanDetectionResults": analysis.PortScanDetectionResults},
+		})
+		return
+	case "HttpReqResults":
+
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"HttpReqResults": analysis.HttpReqResults},
+		})
+		return
+	case "HttpReqIPsResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"HttpReqIPsResults": analysis.HttpReqIPsResults},
+		})
+		return
+	case "CredentialsResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"CredentialsResults": analysis.CredentialsResults},
+		})
+		return
+	case "FileTransferResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"FileTransferResults": analysis.FileTransferResults},
+		})
+		return
+	case "RceResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"RceResults": analysis.RceResults},
+		})
+		return
+	case "SqlInjectionResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"SqlInjectionResults": analysis.SqlInjectionResults},
+		})
+		return
+	case "XssResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"XssResults": analysis.XssResults},
+		})
+		return
+	case "Log4ShellResults":
+		c.JSON(http.StatusOK, gin.H{
+			"Status":   types.Success,
+			"Analysis": gin.H{"Log4ShellResults": analysis.Log4ShellResults},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"Status":   types.Success,
+		"Analysis": analysis,
+	})
+}
 
 // @Summary		Analyze
 // @Description	Analyze a pcap file
@@ -62,8 +245,14 @@ func Analyze(c *gin.Context) {
 	uploadedFileName = filepath.Clean(uploadedFileName)
 
 	// WARN(ahmet): Prod'a alınırken uploads absolute path olarak ayarlanmalı.
-	var filePath string = "./uploads/" + uploadedFileName
-	c.SaveUploadedFile(file, filePath)
+	// check user_id folder exists create if not exists
+	var userFolder string = "uploads/" + c.GetString("user_id")
+	if _, err := os.Stat(userFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+
+	c.SaveUploadedFile(file, userFolder+"/"+uploadedFileName)
+	uploadedTime := time.Now()
 
 	var portScanThreshold int = 10          //port tarama eşik değeri
 	var ipRequstThreshold int = 20          // ip istek eşik değeri
@@ -84,7 +273,7 @@ func Analyze(c *gin.Context) {
 	portUsage := make(map[int]map[string]int)              // Port usage: "requests" and "responses"
 	httpRequestsByIP := make(map[string][]string)          // Kaynak IP'lere göre HTTP isteklerini gruplandır
 
-	handle, err := pcap.OpenOffline(filePath)
+	handle, err := pcap.OpenOffline(userFolder + "/" + uploadedFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -426,9 +615,9 @@ func Analyze(c *gin.Context) {
 
 	newAnalysis := schemas.Analyze{
 		FileName:                 uploadedFileName,
-		FilePath:                 filePath,
-		UploadedAt:               time.Now().String(),
-		AnalyzedAt:               time.Now().String(),
+		UserID:                   c.GetString("user_id"),
+		UploadedAt:               uploadedTime,
+		AnalyzedAt:               time.Now(),
 		Status:                   1,
 		IpResponseResults:        ipResponseArray,
 		IpRequestResults:         ipRequestArray,
@@ -443,7 +632,18 @@ func Analyze(c *gin.Context) {
 		XssResults:               xssArray,
 		Log4ShellResults:         log4shellArray,
 	}
+
 	insertResult, err := database.DB.InsertOne(newAnalysis)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+
+	uploadedFilePath := config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex() + "/download"
+	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -454,8 +654,10 @@ func Analyze(c *gin.Context) {
 	slog.Debug("Inserted an analysis.", "analysis", insertResult.InsertedID)
 
 	c.JSON(http.StatusOK, gin.H{
-		"Status":  types.Success,
-		"Message": "Successfully analyzed the pcap file",
+		"Status":           types.Success,
+		"Message":          "Successfully analyzed the pcap file",
+		"ResultId":         insertResult.InsertedID,
+		"ResultDetailsUrl": config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex(),
 		"Results": gin.H{
 			"IpResponse":        ipResponseArray,
 			"IpRequest":         ipRequestArray,
@@ -470,5 +672,112 @@ func Analyze(c *gin.Context) {
 			"XSS":               xssArray,
 			"Log4Shell":         log4shellArray,
 		},
+		"FilePath": uploadedFilePath,
+	})
+}
+
+// @Summary		Download analysis
+// @Description	Download analysis
+// @Tags		Analyzer
+// @Accept		application/octet-stream
+// @Produce		application/octet-stream
+// @Security 	BearerAuth
+// @Param		Authorization header string true "Bearer token for authorization"
+// @Param		id path string true "Analysis ID"
+// @Success		200	{object}	types.SuccessResponse	"Success"
+// @Failure		400	{object}	types.FailResponse	"Invalid analyze ID"
+// @Failure		404	{object}	types.FailResponse	"Analysis not found"
+// @Router		/analysis/{id}/download [get]
+func DownloadAnalysis(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	analyzeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid analyze ID",
+		})
+		return
+	}
+
+	var analysis schemas.Analyze
+	err = database.DB.FindOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")}, &analysis)
+	if err != nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	if analysis.ID == "" {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+analysis.FileName)
+	c.Header("Content-Type", "application/octet-stream")
+	c.File("uploads/" + c.GetString("user_id") + "/" + analysis.FileName)
+}
+
+// @Summary		Delete analysis
+// @Description	Delete analysis
+// @Tags		Analyzer
+// @Accept		application/json
+// @Produce		application/json
+// @Security 	BearerAuth
+// @Param		Authorization header string true "Bearer token for authorization"
+// @Param		id path string true "Analysis ID"
+// @Success		200	{object}	types.SuccessResponse	"Success"
+// @Failure		400	{object}	types.FailResponse	"Invalid analyze ID"
+// @Failure		404	{object}	types.FailResponse	"Analysis not found"
+// @Failure		500	{object}	types.FailResponse	"An error occurred, please try again later"
+// @Router		/analysis/{id} [delete]
+func DeleteAnalysis(c *gin.Context) {
+	database.DB.SetCollection("analysis")
+
+	analyzeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid analyze ID",
+		})
+		return
+	}
+
+	var analysis schemas.Analyze
+	err = database.DB.FindOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")}, &analysis)
+	if err != nil {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
+	if analysis.ID == "" {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+	os.Remove("uploads/" + c.GetString("user_id") + "/" + analysis.FileName)
+
+	_, err = database.DB.DeleteOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, types.SuccessResponse{
+		Status:  types.Success,
+		Message: "Successfully deleted the analysis",
 	})
 }

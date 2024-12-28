@@ -69,6 +69,49 @@ func (m *MongoDB) FindOne(filter interface{}, result interface{}) error {
 	return nil
 }
 
+func (m *MongoDB) FindAll(filter interface{}, result interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cursor, err := m.Collection.Find(ctx, filter)
+	if err != nil {
+		slog.Debug("Find failed.", "err", err)
+		return err
+	}
+	defer cursor.Close(ctx)
+	err = cursor.All(ctx, result)
+	if err != nil {
+		slog.Debug("Cursor failed.", "err", err)
+		return err
+	}
+	slog.Debug("Successfully found.", "result", result)
+	return nil
+}
+
+func (m *MongoDB) FindWithProjection(filter interface{}, projection interface{}, result interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	findOptions := options.Find()
+	if projection != nil {
+		findOptions.SetProjection(projection)
+	}
+
+	cursor, err := m.Collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		slog.Debug("Find failed.", "err", err)
+		return err
+	}
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, result)
+	if err != nil {
+		slog.Debug("Cursor failed.", "err", err)
+		return err
+	}
+	slog.Debug("Successfully found.", "result", result)
+	return nil
+}
+
 func (m *MongoDB) UpdateOne(filter, update interface{}) (*mongo.UpdateResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -52,7 +52,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.CreateJWTToken(user.Username)
+	token, err := utils.CreateJWTToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,

@@ -71,6 +71,156 @@ definitions:
 info:
   contact: {}
 paths:
+  /analysis:
+    get:
+      consumes:
+      - application/json
+      description: Get analysis
+      parameters:
+      - description: Authorization header with Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "404":
+          description: Analysis not found
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      security:
+      - BearerAuth: []
+      summary: Get analysis
+      tags:
+      - Analyzer
+  /analysis/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete analysis
+      parameters:
+      - description: Bearer token for authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Analysis ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Invalid analyze ID
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "404":
+          description: Analysis not found
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete analysis
+      tags:
+      - Analyzer
+    get:
+      consumes:
+      - application/json
+      description: Get analysis by ID
+      parameters:
+      - description: Analysis ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Authorization header with Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Category
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Invalid analyze ID
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "404":
+          description: Analysis not found
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "500":
+          description: An error occurred, please try again later
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      security:
+      - BearerAuth: []
+      summary: Get analysis by ID
+      tags:
+      - Analyzer
+  /analysis/{id}/download:
+    get:
+      consumes:
+      - application/octet-stream
+      description: Download analysis
+      parameters:
+      - description: Bearer token for authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Analysis ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Invalid analyze ID
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+        "404":
+          description: Analysis not found
+          schema:
+            $ref: '#/definitions/types.FailResponse'
+      security:
+      - BearerAuth: []
+      summary: Download analysis
+      tags:
+      - Analyzer
   /analyze:
     post:
       consumes:
