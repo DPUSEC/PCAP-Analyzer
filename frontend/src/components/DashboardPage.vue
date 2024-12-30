@@ -29,7 +29,7 @@
       </button>
       <button
         v-on:click="active_tab = 'credentials'"
-        v-show="results != null"
+        v-show="results?.CredentialsResults?.length??0>0"
         :class="{ active: active_tab == 'credentials' }"
       >
         <span class="material-symbols-rounded">key_vertical</span>
@@ -37,7 +37,7 @@
       </button>
       <button
         v-on:click="active_tab = 'file_transfer'"
-        v-show="results != null"
+        v-show="results?.FileTransferResults?.length??0>0"
         :class="{ active: active_tab == 'file_transfer' }"
       >
         <span class="material-symbols-rounded">scan</span>
@@ -45,7 +45,7 @@
       </button>
       <button
         v-on:click="active_tab = 'http'"
-        v-show="results != null"
+        v-show="results?.HttpReqResults?.length??0>0"
         :class="{ active: active_tab == 'http' }"
       >
         <span class="material-symbols-rounded">http</span>
@@ -53,7 +53,7 @@
       </button>
       <button
         v-on:click="active_tab = 'ip_req'"
-        v-show="results != null"
+        v-show="results?.IpRequestResults?.length??0>0"
         :class="{ active: active_tab == 'ip_req' }"
       >
         <span class="material-symbols-rounded">host</span>
@@ -61,7 +61,7 @@
       </button>
       <button
         v-on:click="active_tab = 'http_ip'"
-        v-show="results != null"
+        v-show="results?.HttpReqIPsResults?.length??0>0"
         :class="{ active: active_tab == 'http_ip' }"
       >
         <span class="material-symbols-rounded">host</span>
@@ -69,7 +69,7 @@
       </button>
       <button
         v-on:click="active_tab = 'port_scan'"
-        v-show="results != null"
+        v-show="results?.PortScanDetectionResults?.length??0>0"
         :class="{ active: active_tab == 'port_scan' }"
       >
         <span class="material-symbols-rounded">radar</span>
@@ -77,7 +77,7 @@
       </button>
       <button
         v-on:click="active_tab = 'port_stats'"
-        v-show="results != null"
+        v-show="results?.PortStatResults?.length??0>0"
         :class="{ active: active_tab == 'port_stats' }"
       >
         <span class="material-symbols-rounded">query_stats</span>
@@ -85,7 +85,7 @@
       </button>
       <button
         v-on:click="active_tab = 'rce'"
-        v-show="results != null"
+        v-show="results?.RceResults?.length??0>0"
         :class="{ active: active_tab == 'rce' }"
       >
         <span class="material-symbols-rounded">settings_remote</span>
@@ -93,7 +93,7 @@
       </button>
       <button
         v-on:click="active_tab = 'xss'"
-        v-show="results != null"
+        v-show="results?.XssResults?.length??0>0"
         :class="{ active: active_tab == 'xss' }"
       >
         <span class="material-symbols-rounded">frame_source</span>
@@ -141,46 +141,35 @@
         Place here guides
       </div>
       <div class="tab overview" v-if="active_tab == 'overview'">
-        <h2>Overview</h2>
-        <div>Credentials
-            <div>{{results?.CredentialsResults?.length??0}}</div>
+        <h1>Overview</h1>
+        <details v-if="results?.CredentialsResults?.length??0>0">
+            <summary>Credentials <span class="badge">{{results?.CredentialsResults?.length??0}}</span></summary>
             <ul style="display: flex; gap: 20px;">
                 <li v-for="(credential, index) in get_importants_from_object(results?.CredentialsResults?.reduce((a,b)=>{a[b.Arg] = (a[b.Arg]??0)+1; return a;}, {}), 3)??[]" :key="index">{{credential}}</li>
             </ul>
-        </div>
-        <div>File Transfer
-            <div>{{results?.FileTransferResults?.length??0}}</div>
-        </div>
-        <div>HTTP
-            <div>{{results?.HttpReqResults?.length??0}}</div>
-        </div>
-        <div>IP Requests
-            <div>{{results?.IpRequestResults?.length??0}}</div>
+        </details>
+        <div v-if="results?.FileTransferResults?.length??0>0">File Transfer <span class="badge">{{results?.FileTransferResults?.length??0}}</span></div>
+        <div v-if="results?.HttpReqResults?.length??0>0">HTTP <span class="badge">{{results?.HttpReqResults?.length??0}}</span></div>
+        <details v-if="results?.IpRequestResults?.length??0>0"><summary>IP Requests <span class="badge">{{results?.IpRequestResults?.length??0}}</span></summary>
             <ul style="display: flex; gap: 20px;">
                 <li v-for="(ip, index) in get_importants_from_object(results?.IpRequestResults?.reduce((a,b)=>{a[b.IP]=b.Count;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
             </ul>
-        </div>
-        <div>HTTP Reqs by IP
-            <div>{{results?.HttpReqIPsResults?.length??0}}</div>
+        </details>
+        <details v-if="results?.HttpReqIPsResults?.length??0>0">
+            <summary>HTTP Reqs by IP <span class="badge">{{results?.HttpReqIPsResults?.length??0}}</span></summary>
             <ul style="display: flex; gap: 20px;">
                 <li v-for="(ip, index) in get_importants_from_object(results?.HttpReqIPsResults?.reduce((a,b)=>{a[b.SourceIP]=b.TotalRequestCount;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
             </ul>
-        </div>
-        <div>Port Scan Results
-            <div>{{results?.PortScanDetectionResults?.length??0}}</div>
-        </div>
-        <div>Port Stats
-            <div>{{results?.PortStatResults?.length??0}}</div>
+        </details>
+        <div v-if="results?.PortScanDetectionResults?.length??0>0">Port Scan Results <span class="badge">{{results?.PortScanDetectionResults?.length??0}}</span></div>
+        <details v-if="results?.PortStatResults?.length??0>0">
+            <summary>Port Stats <span class="badge">{{results?.PortStatResults?.length??0}}</span></summary>
             <ul style="display: flex; gap: 20px;">
                 <li v-for="(ip, index) in get_importants_from_object(results?.PortStatResults?.reduce((a,b)=>{a[b.Port]=b.Requests+b.Responses;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
             </ul>
-        </div>
-        <div>RCE
-            <div>{{results?.RceResults?.length??0}}</div>
-        </div>
-        <div>XSS
-            <div>{{results?.XssResults?.length??0}}</div>
-        </div>
+        </details>
+        <div v-if="results?.RceResults?.length??0>0">RCE <span class="badge">{{results?.RceResults?.length??0}}</span></div>
+        <div v-if="results?.XssResults?.length??0>0">XSS <span class="badge">{{results?.XssResults?.length??0}}</span></div>
       </div>
       <div class="tab credentials" v-if="active_tab == 'credentials'">
         <div class="credentials">
@@ -540,5 +529,14 @@ table {
     & td {
         border-bottom: 1px solid #0004;
     }
+}
+
+.badge {
+    border-radius: 4px;
+    background: orange;
+    color: white;
+    font-weight: 900;
+    font-size: 12px;
+    padding: 2px;
 }
 </style>
