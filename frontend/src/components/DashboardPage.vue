@@ -25,79 +25,79 @@
         :class="{ active: active_tab == 'overview' }"
       >
         <span class="material-symbols-rounded">overview</span>
-        overview
+        Overview
       </button>
       <button
         v-on:click="active_tab = 'credentials'"
-        v-show="results != null"
+        v-show="results?.CredentialsResults?.length??0>0"
         :class="{ active: active_tab == 'credentials' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">key_vertical</span>
         Credentials
       </button>
       <button
-        v-on:click="active_tab = 'dns'"
-        v-show="results != null"
-        :class="{ active: active_tab == 'dns' }"
-      >
-        <span class="material-symbols-rounded">dns</span>
-        DNS
-      </button>
-      <button
         v-on:click="active_tab = 'file_transfer'"
-        v-show="results != null"
+        v-show="results?.FileTransferResults?.length??0>0"
         :class="{ active: active_tab == 'file_transfer' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">scan</span>
         File Transfer
       </button>
       <button
         v-on:click="active_tab = 'http'"
-        v-show="results != null"
+        v-show="results?.HttpReqResults?.length??0>0"
         :class="{ active: active_tab == 'http' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">http</span>
         HTTP
       </button>
       <button
         v-on:click="active_tab = 'ip_req'"
-        v-show="results != null"
+        v-show="results?.IpRequestResults?.length??0>0"
         :class="{ active: active_tab == 'ip_req' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">host</span>
         IP Requests
       </button>
       <button
         v-on:click="active_tab = 'http_ip'"
-        v-show="results != null"
+        v-show="results?.HttpReqIPsResults?.length??0>0"
         :class="{ active: active_tab == 'http_ip' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">host</span>
         HTTP Reqs by IP
       </button>
       <button
         v-on:click="active_tab = 'port_scan'"
-        v-show="results != null"
+        v-show="results?.PortScanDetectionResults?.length??0>0"
         :class="{ active: active_tab == 'port_scan' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">radar</span>
         Port Scan Detection
       </button>
       <button
         v-on:click="active_tab = 'port_stats'"
-        v-show="results != null"
+        v-show="results?.PortStatResults?.length??0>0"
         :class="{ active: active_tab == 'port_stats' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">query_stats</span>
         Port Stats
       </button>
       <button
         v-on:click="active_tab = 'rce'"
-        v-show="results != null"
+        v-show="results?.RceResults?.length??0>0"
         :class="{ active: active_tab == 'rce' }"
       >
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">settings_remote</span>
         RCE
+      </button>
+      <button
+        v-on:click="active_tab = 'xss'"
+        v-show="results?.XssResults?.length??0>0"
+        :class="{ active: active_tab == 'xss' }"
+      >
+        <span class="material-symbols-rounded">frame_source</span>
+        XSS
       </button>
       <button
         v-on:click="active_tab = 'about'"
@@ -124,9 +124,13 @@
             <!-- Buradaki v-for, :key örnek olarak konulmuştur. -->
             <div class="properties">{{ file.FileName }}</div>
             <div class="controls">
-              <button v-on:click="upload_file_by_id(file.ID)">Load</button>
-              <button>Download</button>
-              <button>
+              <button v-on:click="upload_file_by_id(file.ID)">
+                <span class="material-symbols-rounded">file_open</span>
+              </button>
+              <button v-on:click="download_file_by_id(file.ID, file.FileName)">
+                <span class="material-symbols-rounded">download</span>
+              </button>
+              <button v-on:click="delete_file_by_id(file.ID)">
                 <span class="material-symbols-rounded">delete</span>
               </button>
             </div>
@@ -136,142 +140,170 @@
       <div class="tab guides" v-if="active_tab == 'guides'">
         Place here guides
       </div>
-      <div class="tab overview" v-if="active_tab == 'overview'"></div>
-      <div class="tab dns" v-if="active_tab == 'dns'">DNS</div>
+      <div class="tab overview" v-if="active_tab == 'overview'">
+        <h1>Overview</h1>
+        <details v-if="results?.CredentialsResults?.length??0>0">
+            <summary>Credentials <span class="badge">{{results?.CredentialsResults?.length??0}}</span></summary>
+            <ul style="display: flex; gap: 20px;">
+                <li v-for="(credential, index) in get_importants_from_object(results?.CredentialsResults?.reduce((a,b)=>{a[b.Arg] = (a[b.Arg]??0)+1; return a;}, {}), 3)??[]" :key="index">{{credential}}</li>
+            </ul>
+        </details>
+        <div v-if="results?.FileTransferResults?.length??0>0">File Transfer <span class="badge">{{results?.FileTransferResults?.length??0}}</span></div>
+        <div v-if="results?.HttpReqResults?.length??0>0">HTTP <span class="badge">{{results?.HttpReqResults?.length??0}}</span></div>
+        <details v-if="results?.IpRequestResults?.length??0>0"><summary>IP Requests <span class="badge">{{results?.IpRequestResults?.length??0}}</span></summary>
+            <ul style="display: flex; gap: 20px;">
+                <li v-for="(ip, index) in get_importants_from_object(results?.IpRequestResults?.reduce((a,b)=>{a[b.IP]=b.Count;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
+            </ul>
+        </details>
+        <details v-if="results?.HttpReqIPsResults?.length??0>0">
+            <summary>HTTP Reqs by IP <span class="badge">{{results?.HttpReqIPsResults?.length??0}}</span></summary>
+            <ul style="display: flex; gap: 20px;">
+                <li v-for="(ip, index) in get_importants_from_object(results?.HttpReqIPsResults?.reduce((a,b)=>{a[b.SourceIP]=b.TotalRequestCount;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
+            </ul>
+        </details>
+        <div v-if="results?.PortScanDetectionResults?.length??0>0">Port Scan Results <span class="badge">{{results?.PortScanDetectionResults?.length??0}}</span></div>
+        <details v-if="results?.PortStatResults?.length??0>0">
+            <summary>Port Stats <span class="badge">{{results?.PortStatResults?.length??0}}</span></summary>
+            <ul style="display: flex; gap: 20px;">
+                <li v-for="(ip, index) in get_importants_from_object(results?.PortStatResults?.reduce((a,b)=>{a[b.Port]=b.Requests+b.Responses;return a;},{}), 3)??[]" :key="index">{{ip}}</li>
+            </ul>
+        </details>
+        <div v-if="results?.RceResults?.length??0>0">RCE <span class="badge">{{results?.RceResults?.length??0}}</span></div>
+        <div v-if="results?.XssResults?.length??0>0">XSS <span class="badge">{{results?.XssResults?.length??0}}</span></div>
+      </div>
       <div class="tab credentials" v-if="active_tab == 'credentials'">
         <div class="credentials">
-          <div
-            v-for="(credential, index) in results?.Credentials ?? []"
-            :key="index"
-          >
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ credential.PacketID }}</span>
-                <span>{{ credential.SrcIP }}</span>
-                <span>{{ credential.SrcPort }}</span>
-                <span>{{ credential.DstIP }}</span>
-                <span>{{ credential.DstPort }}</span>
-                <span>{{ credential.FileName }}</span>
-                <span>{{ credential.Arg }}</span>
-                <span>{{ credential.Command }}</span>
-                <span>{{ credential.MatchedKeyword }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr v-for="(credential, index) in results?.CredentialsResults ?? []"
+              :key="index">
+                <td>{{ credential.PacketID }}</td>
+                <td>{{ credential.SrcIP }}</td>
+                <td>{{ credential.SrcPort }}</td>
+                <td>{{ credential.DstIP }}</td>
+                <td>{{ credential.DstPort }}</td>
+                <td>{{ credential.FileName }}</td>
+                <td>{{ credential.Arg }}</td>
+                <td>{{ credential.Command }}</td>
+                <td>{{ credential.MatchedKeyword }}</td>
+              </tr>
+        </table>
         </div>
       </div>
       <div class="tab http_ip" v-if="active_tab == 'http_ip'">
-        <div class="http_ip">
-          <div
-            v-for="(req, index) in results?.HttpRequestsByIP ?? []"
-            :key="index"
-          >
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ req.SourceIP }}</span>
-                <span>{{ req.TotalRequestCount }}</span>
-              </li>
-            </ul>
-          </div>
+          <div class="http_ip">
+            <table>
+              <tr
+              v-for="(req, index) in results?.HttpReqIPsResults ?? []"
+              :key="index">
+                <td>{{ req.SourceIP }}</td>
+                <td>{{ req.TotalRequestCount }}</td>
+              </tr>
+        </table>
+        </div>
+      </div>
+      <div class="tab xss" v-if="active_tab == 'xss'">
+          <div class="xss">
+            <table>
+              <tr
+              v-for="(req, index) in results?.XssResults ?? []"
+              :key="index"
+            >
+                <td>{{ req.PacketID }}</td>
+                <td>{{ req.SrcIP }}</td>
+                <td>{{ req.SrcPort }}</td>
+                <td>{{ req.DstIP }}</td>
+                <td>{{ req.DstPort }}</td>
+                <td>{{ req.FileName }}</td>
+                <td>{{ req.Arg }}</td>
+                <td>{{ req.Command }}</td>
+                <td>{{ req.MatchedKeyword }}</td>
+              </tr>
+        </table>
         </div>
       </div>
       <div class="tab ip_req" v-if="active_tab == 'ip_req'">
-        <div class="ip_req">
-          <div v-for="(req, index) in results?.IpRequest ?? []" :key="index">
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ req.IP }}</span>
-                <span>{{ req.Count }}</span>
-              </li>
-            </ul>
-          </div>
+          <div class="ip_req">
+            <table>
+              <tr v-for="(req, index) in results?.IpRequestResults ?? []" :key="index">
+                <td>{{ req.IP }}</td>
+                <td>{{ req.Count }}</td>
+              </tr>
+            </table>
         </div>
       </div>
       <div class="tab http" v-if="active_tab == 'http'">
         <div class="http">
-          <div v-for="(req, index) in results?.HttpRequests ?? []" :key="index">
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ req.Path }}</span>
-                <span>{{ req.RequestCount }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr v-for="(req, index) in results?.HttpReqResults ?? []" :key="index">
+                <td>{{ req.Path }}</td>
+                <td>{{ req.RequestCount }}</td>
+              </tr>
+        </table>
         </div>
       </div>
       <div class="tab file_transfer" v-if="active_tab == 'file_transfer'">
         <div class="file_transfer">
-          <div
-            v-for="(file, index) in results?.FileTransfer ?? []"
-            :key="index"
-          >
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ file.PacketID }}</span>
-                <span>{{ file.SrcIP }}</span>
-                <span>{{ file.SrcPort }}</span>
-                <span>{{ file.DstIP }}</span>
-                <span>{{ file.DstPort }}</span>
-                <span>{{ file.FileName }}</span>
-                <span>{{ file.Arg }}</span>
-                <span>{{ file.Command }}</span>
-                <span>{{ file.MatchedKeyword }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr
+              v-for="(file, index) in results?.FileTransferResults ?? []"
+              :key="index"
+            >
+                <td>{{ file.PacketID }}</td>
+                <td>{{ file.SrcIP }}</td>
+                <td>{{ file.SrcPort }}</td>
+                <td>{{ file.DstIP }}</td>
+                <td>{{ file.DstPort }}</td>
+                <td>{{ file.FileName }}</td>
+                <td>{{ file.Arg }}</td>
+                <td>{{ file.Command }}</td>
+                <td>{{ file.MatchedKeyword }}</td>
+              </tr>
+        </table>
         </div>
       </div>
       <div class="tab port_scan" v-if="active_tab == 'port_scan'">
         <div class="port_scan">
-          <div
-            v-for="(file, index) in results?.PortScanDetection ?? []"
-            :key="index"
-          >
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ file.IP }}</span>
-                <span>{{ file.Ports }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr
+              v-for="(file, index) in results?.PortScanDetectionResults ?? []"
+              :key="index"
+            >
+                <td>{{ file.IP }}</td>
+                <td>{{ file.Ports }}</td>
+              </tr>
+        </table>
         </div>
       </div>
       <div class="tab port_stats" v-if="active_tab == 'port_stats'">
         <div class="port_stats">
-          <div v-for="(file, index) in results?.PortStats ?? []" :key="index">
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ file.Port }}</span>
-                <span>{{ file.Requests }}</span>
-                <span>{{ file.Responses }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr v-for="(file, index) in results?.PortStatResults ?? []" :key="index">
+                <td>{{ file.Port }}</td>
+                <td>{{ file.Requests }}</td>
+                <td>{{ file.Responses }}</td>
+              </tr>
+            </table>
         </div>
       </div>
       <div class="tab rce" v-if="active_tab == 'rce'">
         <div class="rce">
-          <div v-for="(rce, index) in results?.RCE ?? []" :key="index">
-            <ul>
-              <li style="display: flex; justify-content: space-between">
-                <span>{{ rce.PacketID }}</span>
-                <span>{{ rce.SrcIP }}</span>
-                <span>{{ rce.SrcPort }}</span>
-                <span>{{ rce.DstIP }}</span>
-                <span>{{ rce.DstPort }}</span>
-                <span>{{ rce.FileName }}</span>
-                <span>{{ rce.Arg }}</span>
-                <span>{{ rce.Command }}</span>
-                <span>{{ rce.MatchedKeyword }}</span>
-              </li>
-            </ul>
-          </div>
+            <table>
+              <tr v-for="(rce, index) in results?.RceResults ?? []" :key="index">
+                <td>{{ rce.PacketID }}</td>
+                <td>{{ rce.SrcIP }}</td>
+                <td>{{ rce.SrcPort }}</td>
+                <td>{{ rce.DstIP }}</td>
+                <td>{{ rce.DstPort }}</td>
+                <td>{{ rce.FileName }}</td>
+                <td>{{ rce.Arg }}</td>
+                <td>{{ rce.Command }}</td>
+                <td>{{ rce.MatchedKeyword }}</td>
+              </tr>
+        </table>
         </div>
       </div>
-      <div class="tab dns" v-if="active_tab == 'about'">
-        <ul>
-          <h1>We're DPUSEC</h1>
-        </ul>
+      <div class="tab about" v-if="active_tab == 'about'">
+        <h1>We're DPUSEC</h1>
       </div>
     </div>
   </div>
@@ -281,6 +313,10 @@
 export default {
   name: "DashboardPage",
   methods: {
+    get_importants_from_object: (obj, num=3) => {
+        if(!obj) return null;
+        return Object.keys(obj).sort((a, b) => obj[b] - obj[a]).slice(0, Math.min(num, Object.keys(obj).length));
+    },
     upload_file: function () {
       var file_uploader = document.createElement("input");
       file_uploader.type = "file";
@@ -302,16 +338,30 @@ export default {
             }
           );
           let data = await response.json();
-          console.warn(data);
           this.results = data.Results;
           this.active_tab = "overview";
+          this.reload_file_list();
         } catch (error) {
           console.error(error);
         }
       };
     },
+    reload_file_list: async function () {
+        const response = await fetch(
+            "http://localhost:8000/api/v1/analysis",
+            {
+            method: "GET",
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+            }
+        );
+        if (response.status == 401) this.$router.push("/login");
+        const data = await response.json();
+        this.uploaded_files = data.Analysis;
+    },
     upload_file_by_id: async function (id) {
-      if (id == null) return console.warn("ID cannot be null");
+      if (id == null) return console.error("ID cannot be null");
       try {
         const response = await fetch(
           `http://localhost:8000/api/v1/analysis/${id}`,
@@ -323,9 +373,47 @@ export default {
           }
         );
         let data = await response.json();
-        console.warn(data);
-        this.results = data.Results;
+        this.results = data.Analysis;
         this.active_tab = "overview";
+        this.reload_file_list();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    delete_file_by_id: async function (id) {
+      if (id == null) return console.error("ID cannot be null");
+      try {
+        await fetch(
+          `http://localhost:8000/api/v1/analysis/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+          }
+        );
+        await this.reload_file_list();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    download_file_by_id: async function (id, file_name = "download.pcap") {
+      if (id == null) return console.error("ID cannot be null");
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/v1/analysis/${id}/download`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+          }
+        );
+        let blob = await response.blob();
+        let file = new File([blob], file_name, { type: blob.type });
+        let uri = await URL.createObjectURL(file);
+        window.open(uri, "target=_blank");
+        await URL.revokeObjectURL(uri);
       } catch (error) {
         console.error(error);
       }
@@ -337,19 +425,7 @@ export default {
         if (!this.is_authorized_runned) {
           this.is_authorized_runned = true;
           try {
-            const response = await fetch(
-              "http://localhost:8000/api/v1/analysis",
-              {
-                method: "GET",
-                headers: {
-                  Authorization: "Bearer " + localStorage.getItem("token"),
-                },
-              }
-            );
-            if (response.status == 401) this.$router.push("/login");
-            const data = await response.json();
-            this.uploaded_files = data.Analysis;
-            console.warn(data.Analysis);
+            await this.reload_file_list();
           } catch (err) {
             this.$router.push("/login");
           }
@@ -442,5 +518,25 @@ button {
       }
     }
   }
+}
+
+table {
+    border-radius: 8px;
+    border: 1px solid black;
+    padding: 8px;
+    width: 100%;
+
+    & td {
+        border-bottom: 1px solid #0004;
+    }
+}
+
+.badge {
+    border-radius: 4px;
+    background: orange;
+    color: white;
+    font-weight: 900;
+    font-size: 12px;
+    padding: 2px;
 }
 </style>
