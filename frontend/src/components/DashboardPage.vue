@@ -310,6 +310,8 @@
 </template>
 
 <script>
+import config from "@/config";
+
 export default {
   name: "DashboardPage",
   methods: {
@@ -328,7 +330,7 @@ export default {
         form_data.append("file", the_file);
         try {
           const response = await fetch(
-            "http://localhost:8000/api/v1/analysis",
+            config.apiDomain + "/api/v1/analysis",
             {
               method: "POST",
               headers: {
@@ -348,7 +350,7 @@ export default {
     },
     reload_file_list: async function () {
         const response = await fetch(
-            "http://localhost:8000/api/v1/analysis",
+            config.apiDomain + "/api/v1/analysis",
             {
             method: "GET",
             headers: {
@@ -364,7 +366,7 @@ export default {
       if (id == null) return console.error("ID cannot be null");
       try {
         const response = await fetch(
-          `http://localhost:8000/api/v1/analysis/${id}`,
+          `${config.apiDomain}/api/v1/analysis/${id}`,
           {
             method: "GET",
             headers: {
@@ -384,7 +386,7 @@ export default {
       if (id == null) return console.error("ID cannot be null");
       try {
         await fetch(
-          `http://localhost:8000/api/v1/analysis/${id}`,
+          `${config.apiDomain}/api/v1/analysis/${id}`,
           {
             method: "DELETE",
             headers: {
@@ -401,7 +403,7 @@ export default {
       if (id == null) return console.error("ID cannot be null");
       try {
         const response = await fetch(
-          `http://localhost:8000/api/v1/analysis/${id}/download`,
+          `${config.apiDomain}/api/v1/analysis/${id}/download`,
           {
             method: "GET",
             headers: {
