@@ -75,6 +75,13 @@ func StartApiServer() {
 	r.POST(prefix+"/register", routes.Register)
 	r.GET(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.GetAnalysis)
 	r.POST(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.Analyze)
+
+	r.POST(prefix+"/suricata", middleware.AuthenticateMiddleware, routes.SuricataAnalysis)
+
+	r.GET(prefix+"/rules", middleware.AuthenticateMiddleware, routes.GetRules)
+	r.POST(prefix+"/rules", middleware.AuthenticateMiddleware, routes.CreateRule)
+	r.DELETE(prefix+"/rules/:rule_id", middleware.AuthenticateMiddleware, routes.DeleteRule)
+
 	r.GET(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.GetAnalysisByID)
 	r.DELETE(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.DeleteAnalysis)
 	r.GET(prefix+"/analysis/:id/download", middleware.AuthenticateMiddleware, routes.DownloadAnalysis)

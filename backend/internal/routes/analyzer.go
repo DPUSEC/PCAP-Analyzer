@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -885,7 +887,7 @@ func DeleteAnalysis(c *gin.Context) {
 	os.Remove("uploads/" + c.GetString("user_id") + "/" + analysis.FileName)
 	os.RemoveAll("uploads/" + c.GetString("user_id") + "/" + analysis.FileName + "_files")
 
-	_, err = database.DB.DeleteOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")})
+	deleteResults, err := database.DB.DeleteOne(bson.M{"_id": analyzeId, "user_id": c.GetString("user_id")})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -894,8 +896,190 @@ func DeleteAnalysis(c *gin.Context) {
 		return
 	}
 
+	if deleteResults.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Analysis not found",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, types.SuccessResponse{
 		Status:  types.Success,
 		Message: "Successfully deleted the analysis",
+	})
+}
+
+// @Summary		Analyze with Suricata
+// @Description	Analyze with Suricata
+// @Tags		Analyzer
+// @Accept		application/json
+// @Produce		application/json
+// @Security 	BearerAuth
+// @Param		Authorization header string true "Bearer token for authorization"
+// @Param		id path string true "Analysis ID"
+// @Success		200	{object}	types.SuccessResponse	"Success"
+// @Failure		400	{object}	types.FailResponse	"Invalid analyze ID"
+// @Failure		404	{object}	types.FailResponse	"Analysis not found"
+// @Router		/analysis/{id} [post]
+func SuricataAnalysis(c *gin.Context) {
+	// ruleIds JSON stringini al
+	ruleIdsStr := c.Request.FormValue("ruleIds")
+	var temp_ruleIds []string
+	if err := json.Unmarshal([]byte(ruleIdsStr), &temp_ruleIds); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "fail",
+			"message": "Invalid ruleIds format",
+		})
+		return
+	}
+
+	var ruleIds []primitive.ObjectID
+	for _, ruleId := range temp_ruleIds {
+		objectID, err := primitive.ObjectIDFromHex(ruleId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "fail",
+				"message": "Invalid rule ID: " + ruleId,
+			})
+			return
+		}
+		ruleIds = append(ruleIds, objectID)
+	}
+
+	// get paths with rule ids from database
+	database.DB.SetCollection("rules")
+
+	var rules []schemas.Rules
+	err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}}, &rules)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+	fmt.Println(rules)
+
+	paths := make([]string, 0, len(rules))
+	for _, rule := range rules {
+		paths = append(paths, rule.Path)
+	}
+	fmt.Println(paths)
+
+	file, _ := c.FormFile("file")
+	if file == nil {
+		c.JSON(http.StatusBadGateway, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid file",
+		})
+		return
+	}
+
+	var uploadedFileName string = fmt.Sprintf("%d_%s", rand.Int63(), file.Filename)
+	uploadedFileName = url.QueryEscape(uploadedFileName)
+	uploadedFileName = filepath.Clean(uploadedFileName)
+
+	// WARN(ahmet): Prod'a alınırken uploads absolute path olarak ayarlanmalı.
+	// check user_id folder exists create if not exists
+	var userFolder string = "uploads/" + c.GetString("user_id")
+	if _, err := os.Stat(userFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+	var exportFolder string = userFolder + "/extracted_files"
+	if _, err := os.Stat(exportFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+
+	c.SaveUploadedFile(file, userFolder+"/"+uploadedFileName)
+	uploadedTime := time.Now()
+
+	handle, err := pcap.OpenOffline(userFolder + "/" + uploadedFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer handle.Close()
+
+	// Extract files
+	outputExportFolder := userFolder + "/" + uploadedFileName + "_files"
+	if _, err := os.Stat(outputExportFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+	exportedFiles := utils.ExtractFilesUsingTshark(userFolder+"/"+uploadedFileName, outputExportFolder)
+
+	outputDir := userFolder + "/" + uploadedFileName + "_suricata"
+	if _, err := os.Stat(outputExportFolder); os.IsNotExist(err) {
+		os.Mkdir(userFolder, 0755)
+	}
+
+	// Suricata komutunu çalıştır
+	for _, ruleFile := range paths {
+		// Kural dosyasından klasör ismini oluştur
+		ruleFileName := filepath.Base(ruleFile)
+		ruleFolderName := strings.TrimSuffix(ruleFileName, filepath.Ext(ruleFileName))
+		outputDir := filepath.Join(outputDir, ruleFolderName)
+
+		// Klasör yoksa oluştur
+		if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+			fmt.Println("Klasör oluşturulamadı:", outputDir, "Hata:", err)
+			return
+		}
+
+		// Suricata komutunu oluştur
+		suricataCmd := exec.Command("suricata.exe", "-r", userFolder+"/"+uploadedFileName, "-S", ruleFile, "-l", outputDir)
+		suricataCmd.Stdout = os.Stdout
+		suricataCmd.Stderr = os.Stderr
+
+		// Komutu çalıştır
+		err := suricataCmd.Run()
+		if err != nil {
+			slog.Error("Suricata çalıştırılırken bir hata oluştu.")
+			return
+		}
+	}
+
+	// Save results to mongodb
+	database.DB.SetCollection("analysis")
+
+	newAnalysis := schemas.Analyze{
+		FileName:   uploadedFileName,
+		UserID:     c.GetString("user_id"),
+		UploadedAt: uploadedTime,
+		AnalyzedAt: time.Now(),
+		Status:     1,
+	}
+
+	insertResult, err := database.DB.InsertOne(newAnalysis)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+
+	var exportedFileUrls []string
+	for _, file := range exportedFiles {
+		exportedFileUrls = append(exportedFileUrls, config.GetEnv().ApiPrefix+"/analysis/"+insertResult.InsertedID.(primitive.ObjectID).Hex()+"/files/"+file+"/download")
+	}
+
+	uploadedFilePath := config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex() + "/download"
+	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath, "exported_files": exportedFiles}})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "An error occurred, please try again later",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"Status":           types.Success,
+		"Message":          "Successfully analyzed the pcap file",
+		"ResultId":         insertResult.InsertedID,
+		"ResultDetailsUrl": config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex(),
+		"FilePath":         uploadedFilePath,
+		"ExportedFileUrls": exportedFileUrls,
+		"ExportedFiles":    exportedFiles,
 	})
 }
