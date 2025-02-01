@@ -44,7 +44,7 @@ type Alert struct {
 type Analyze struct {
 	ID         string    `bson:"_id,omitempty"`
 	FileName   string    `bson:"file_name"`
-	FilePath   string    `bson:"file_path"`
+	PcapPath   string    `bson:"file_path"`
 	UploadedAt time.Time `bson:"uploaded_at"`
 	AnalyzedAt time.Time `bson:"analyzed_at"`
 	UserID     string    `bson:"user_id"`

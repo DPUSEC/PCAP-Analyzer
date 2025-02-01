@@ -409,7 +409,7 @@ func SuricataAnalysis(c *gin.Context) {
 	database.DB.SetCollection("rules")
 
 	var rules []schemas.Rules
-	err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}}, &rules)
+	err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}, "creator_id": c.GetString("user_id")}, &rules)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -418,7 +418,16 @@ func SuricataAnalysis(c *gin.Context) {
 		return
 	}
 
+	if len(rules) == 0 {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Rules not found",
+		})
+		return
+	}
+
 	file, _ := c.FormFile("file")
+
 	if file == nil {
 		c.JSON(http.StatusBadGateway, types.FailResponse{
 			Status:  types.Fail,

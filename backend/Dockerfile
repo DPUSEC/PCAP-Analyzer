@@ -3,14 +3,12 @@ FROM golang:1.23.3
 WORKDIR /build
 COPY . /build
 
-RUN apt update -y && apt install -y tshark libpcap-dev
+RUN apt update -y && apt install -y tshark libpcap-dev suricata
 RUN go mod tidy
 RUN go build -o app-server
 
 WORKDIR /app
-COPY ./config/keywords.json /app
 RUN mv /build/app-server /app/app-server
 RUN rm -rf /build
 
-ENV KEYWORDS_FILE_PATH="/app/keywords.json"
 CMD ["/app/app-server"]
