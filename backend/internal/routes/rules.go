@@ -102,10 +102,18 @@ func CreateRule(c *gin.Context) {
 // @Failure		502	{object} types.FailResponse	"Fail"
 // @Router			/rules [get]
 func GetRules(c *gin.Context) {
+	type TempRules struct {
+		ID          string    `bson:"_id,omitempty"`
+		Name        string    `bson:"name"`
+		Description string    `bson:"description"`
+		CreatedAt   time.Time `bson:"created_at"`
+		UpdatedAt   time.Time `bson:"updated_at"`
+	}
+
 	userId := c.GetString("user_id")
 
 	database.DB.SetCollection("rules")
-	rules := []schemas.Rules{}
+	rules := []TempRules{}
 	err := database.DB.FindAll(bson.M{"creator_id": userId}, &rules)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{

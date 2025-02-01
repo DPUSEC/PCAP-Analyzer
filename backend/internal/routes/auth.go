@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"pcap-analyzer/internal/database"
 	"pcap-analyzer/internal/schemas"
@@ -43,7 +44,7 @@ func Login(c *gin.Context) {
 
 	// Check if the user exists
 	var user schemas.User
-	err = database.DB.FindOne(bson.M{"username": loginParams.Username, "password": loginParams.Password}, &user)
+	err = database.DB.FindOne(bson.M{"username": loginParams.Username}, &user)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, types.FailResponse{
 			Status:  types.Fail,
@@ -52,7 +53,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	if !utils.ComparePassword(loginParams.Password, user.Password) {
+		c.JSON(http.StatusUnauthorized, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Invalid username or password",
+		})
+		return
+	}
+
 	token, err := utils.CreateJWTToken(user.ID)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -116,7 +126,7 @@ func Register(c *gin.Context) {
 	// Insert the user
 	newUser := schemas.User{
 		Username: registerParams.Username,
-		Password: registerParams.Password,
+		Password: utils.HashPassword(registerParams.Password),
 	}
 	insertResult, err := database.DB.InsertOne(newUser)
 	if err != nil {
@@ -128,7 +138,7 @@ func Register(c *gin.Context) {
 	}
 	slog.Debug("Inserted a user.", "user", insertResult.InsertedID)
 
-	token, err := utils.CreateJWTToken(newUser.Username)
+	token, err := utils.CreateJWTToken(insertResult.InsertedID.(primitive.ObjectID).Hex())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,

@@ -73,20 +73,18 @@ func StartApiServer() {
 	r.GET(prefix+"/version", middleware.AuthenticateMiddleware, Version)
 	r.POST(prefix+"/login", routes.Login)
 	r.POST(prefix+"/register", routes.Register)
+
 	r.GET(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.GetAnalysis)
-	r.POST(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.Analyze)
-
-	r.POST(prefix+"/suricata", middleware.AuthenticateMiddleware, routes.SuricataAnalysis)
-
-	r.GET(prefix+"/rules", middleware.AuthenticateMiddleware, routes.GetRules)
-	r.POST(prefix+"/rules", middleware.AuthenticateMiddleware, routes.CreateRule)
-	r.DELETE(prefix+"/rules/:rule_id", middleware.AuthenticateMiddleware, routes.DeleteRule)
-
+	r.POST(prefix+"/analysis", middleware.AuthenticateMiddleware, routes.SuricataAnalysis)
 	r.GET(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.GetAnalysisByID)
 	r.DELETE(prefix+"/analysis/:id", middleware.AuthenticateMiddleware, routes.DeleteAnalysis)
 	r.GET(prefix+"/analysis/:id/download", middleware.AuthenticateMiddleware, routes.DownloadAnalysis)
 	r.GET(prefix+"/analysis/:id/files", middleware.AuthenticateMiddleware, routes.GetExportedFiles)
 	r.GET(prefix+"/analysis/:id/files/:file/download", middleware.AuthenticateMiddleware, routes.DownloadExportedFile)
+
+	r.GET(prefix+"/rules", middleware.AuthenticateMiddleware, routes.GetRules)
+	r.POST(prefix+"/rules", middleware.AuthenticateMiddleware, routes.CreateRule)
+	r.DELETE(prefix+"/rules/:rule_id", middleware.AuthenticateMiddleware, routes.DeleteRule)
 
 	err := r.Run(fmt.Sprintf(":%s", port))
 	if err != nil {

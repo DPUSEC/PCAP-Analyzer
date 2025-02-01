@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,8 +10,10 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"pcap-analyzer/internal/schemas"
 	"pcap-analyzer/internal/types"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/google/uuid"
@@ -109,4 +112,116 @@ func LoadKeywords(filePath string) (types.Keywords, error) { //Anahtar kelimeler
 	}
 
 	return keywords, nil
+}
+
+func ReadSuricataLogs(eveJsonPath string) []string {
+	var logs []string
+
+	eveJsonFile := eveJsonPath + "/eve.json"
+	file, err := os.Open(eveJsonFile)
+	if err != nil {
+		slog.Error("Failed to open eve.json file")
+		return logs
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		logs = append(logs, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		slog.Error("Error reading eve.json file")
+		return logs
+	}
+
+	return logs
+}
+
+func getStringValue(v interface{}) string {
+	switch val := v.(type) {
+	case string:
+		return val
+	case float64:
+		return fmt.Sprintf("%.0f", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
+func getIntValue(v interface{}) int {
+	switch val := v.(type) {
+	case int:
+		return val
+	case float64:
+		return int(val)
+	default:
+		return 0
+	}
+}
+
+func getBoolValue(v interface{}) bool {
+	switch val := v.(type) {
+	case bool:
+		return val
+	default:
+		return false
+	}
+}
+
+func GetAlertsFromSuricataLogs(logs []string) (alertlist []schemas.Alert) {
+
+	var alerts []schemas.Alert
+
+	for i := 0; i < len(logs); i++ {
+		var tempAlert map[string]interface{}
+		err := json.Unmarshal([]byte(logs[i]), &tempAlert)
+		if err != nil {
+			slog.Error("Failed to parse alert JSON", "error", err)
+			continue
+		}
+
+		if eventType := tempAlert["event_type"]; eventType == "alert" {
+			timestampStr := tempAlert["timestamp"].(string)
+			parsedTime, err := time.Parse("2006-01-02T15:04:05.999999-0700", timestampStr)
+			if err != nil {
+				slog.Error("Timestamp parse error", "error", err)
+				continue
+			}
+
+			alerts = append(alerts, schemas.Alert{
+				Timestamp:            parsedTime,
+				EventType:            "alert",
+				FlowId:               getStringValue(tempAlert["flow_id"]),
+				TransmissionProtocol: getStringValue(tempAlert["proto"]),
+				Flow: schemas.InternalFlow{
+					PktsToServer:  getIntValue(tempAlert["flow"].(map[string]interface{})["pkts_toserver"]),
+					PktsToClient:  getIntValue(tempAlert["flow"].(map[string]interface{})["pkts_toclient"]),
+					BytesToServer: getIntValue(tempAlert["flow"].(map[string]interface{})["bytes_toserver"]),
+					BytesToClient: getIntValue(tempAlert["flow"].(map[string]interface{})["bytes_toclient"]),
+					Start:         parsedTime,
+					SrcIp:         getStringValue(tempAlert["flow"].(map[string]interface{})["src_ip"]),
+					SrcPort:       getIntValue(tempAlert["flow"].(map[string]interface{})["src_port"]),
+					DestIp:        getStringValue(tempAlert["flow"].(map[string]interface{})["dest_ip"]),
+					DestPort:      getIntValue(tempAlert["flow"].(map[string]interface{})["dest_port"]),
+				},
+				SrcIp:     getStringValue(tempAlert["src_ip"]),
+				SrcPort:   getIntValue(tempAlert["src_port"]),
+				DstIp:     getStringValue(tempAlert["dest_ip"]),
+				DstPort:   getIntValue(tempAlert["dest_port"]),
+				PktSrc:    getStringValue(tempAlert["pkt_src"]),
+				TxId:      getIntValue(tempAlert["tx_id"]),
+				TxGuessed: getBoolValue(tempAlert["tx_guessed"]),
+				Alert: schemas.InternalAlert{
+					Action:      getStringValue(tempAlert["alert"].(map[string]interface{})["action"]),
+					SignatureId: getIntValue(tempAlert["alert"].(map[string]interface{})["signature_id"]),
+					Signature:   getStringValue(tempAlert["alert"].(map[string]interface{})["signature"]),
+					Category:    getStringValue(tempAlert["alert"].(map[string]interface{})["category"]),
+					Severity:    getIntValue(tempAlert["alert"].(map[string]interface{})["severity"]),
+				},
+			})
+		}
+	}
+
+	return alerts
 }
