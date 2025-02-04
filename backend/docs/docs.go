@@ -131,6 +131,60 @@ const docTemplate = `{
                     }
                 }
             },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Analyze with Suricata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analyzer"
+                ],
+                "summary": "Analyze with Suricata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token for authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Analysis ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid analyze ID",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Analysis not found",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -248,16 +302,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/analyze": {
-            "post": {
+        "/analysis/{id}/files": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Analyze a pcap file",
+                "description": "Get exported files",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -265,20 +319,20 @@ const docTemplate = `{
                 "tags": [
                     "Analyzer"
                 ],
-                "summary": "Analyze",
+                "summary": "Get exported files",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "PCAP file",
-                        "name": "file",
-                        "in": "formData",
+                        "type": "string",
+                        "description": "Bearer token for authorization",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
+                        "description": "Analysis ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -290,13 +344,76 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid file",
+                        "description": "Invalid analyze ID",
                         "schema": {
                             "$ref": "#/definitions/types.FailResponse"
                         }
                     },
-                    "500": {
-                        "description": "An error occurred, please try again later",
+                    "404": {
+                        "description": "Analysis not found",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/analysis/{id}/files/{file}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download exported file",
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Analyzer"
+                ],
+                "summary": "Download exported file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token for authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Analysis ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "file",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid analyze ID",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Analysis not found",
                         "schema": {
                             "$ref": "#/definitions/types.FailResponse"
                         }
@@ -395,6 +512,131 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "An error occurred, please try again later",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rules": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all rules",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rules"
+                ],
+                "summary": "Get all rules",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Fail",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new rule",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rules"
+                ],
+                "summary": "Create a new rule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Rule file",
+                        "name": "rules_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Fail",
+                        "schema": {
+                            "$ref": "#/definitions/types.FailResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rules/{rule_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rules"
+                ],
+                "summary": "Delete a rule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Rule ID",
+                        "name": "rule_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/types.SuccessResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Fail",
                         "schema": {
                             "$ref": "#/definitions/types.FailResponse"
                         }

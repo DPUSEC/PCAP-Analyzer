@@ -57,6 +57,18 @@ func (m *MongoDB) InsertOne(data interface{}) (*mongo.InsertOneResult, error) {
 	return result, nil
 }
 
+func (m *MongoDB) Find(filter interface{}) (*mongo.Cursor, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cursor, err := m.Collection.Find(ctx, filter)
+	if err != nil {
+		slog.Debug("Find failed.", "err", err)
+		return nil, err
+	}
+	slog.Debug("Successfully found.")
+	return cursor, nil
+}
+
 func (m *MongoDB) FindOne(filter interface{}, result interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

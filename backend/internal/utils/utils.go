@@ -10,6 +10,7 @@ import (
 	"log/slog"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 
 	"pcap-analyzer/constants"
 )
@@ -135,4 +136,18 @@ func ExtractClaims(tokenStr string) jwt.MapClaims {
 		slog.Error("Invalid JWT Token")
 		return nil
 	}
+}
+
+func HashPassword(password string) string {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		slog.Error("Error hashing password", "Error", err)
+		return ""
+	}
+	return string(hashedPassword)
+}
+
+func ComparePassword(password, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }
