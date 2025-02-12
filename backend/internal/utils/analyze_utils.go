@@ -61,7 +61,7 @@ func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList [
 		// TShark komutunu olusturuyoruz: Protokol belirtmeden tum protokoller icin dosya cikar
 		tsharkCmd := fmt.Sprintf("tshark -r %s --export-objects %s,%s", pcapFilePath, tsharkProtocols[a], outputDir)
 
-		cmd := exec.Command("sh", "-c", tsharkCmd)
+		cmd := exec.Command("cmd", "/C", tsharkCmd)
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &out
@@ -181,11 +181,15 @@ func CreateDefaultRules() bool {
 	if err != nil {
 		return false
 	}
-	if len(defaultRules) != 8 { // Default rule count - 1
-		_, err := database.DB.DeleteOne(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"})
-		if err != nil {
-			return false
+	if len(defaultRules) != 9 {
+		for _ = range defaultRules {
+			_, err := database.DB.DeleteOne(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"})
+			if err != nil {
+				return false
+			}
 		}
+	} else {
+		return true
 	}
 	_, err = database.DB.InsertOne(schemas.Rules{
 		Name:        "Abuse.ch SSL Blacklist - DEFAULT",
@@ -259,7 +263,6 @@ func CreateDefaultRules() bool {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	})
-
 	// Diğer rule'lar buraya gelecek.
 	return err == nil
 }
