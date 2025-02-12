@@ -114,7 +114,7 @@ func GetRules(c *gin.Context) {
 
 	database.DB.SetCollection("rules")
 	rules := []TempRules{}
-	err := database.DB.FindAll(bson.M{"creator_id": userId}, &rules)
+	err := database.DB.FindAll(bson.M{"$or": []bson.M{{"creator_id": userId}, {"creator_id": "67aca2522c035f56a31b0d5c"}}}, &rules)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -122,18 +122,6 @@ func GetRules(c *gin.Context) {
 		})
 		return
 	}
-
-	defaultRules := []TempRules{}
-	err = database.DB.FindAll(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"}, &defaultRules)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, types.FailResponse{
-			Status:  types.Fail,
-			Message: "Failed to get rules",
-		})
-		return
-	}
-
-	rules = append(rules, defaultRules...)
 
 	c.JSON(http.StatusOK, gin.H{
 		"Status": types.Success,
@@ -165,11 +153,27 @@ func DeleteRule(c *gin.Context) {
 	}
 
 	rule := schemas.Rules{}
-	err = database.DB.FindOne(bson.M{"_id": ruleId, "creator_id": c.GetString("user_id")}, &rule)
+	err = database.DB.FindOne(bson.M{"_id": ruleId}, &rule)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
 			Message: "Failed to get rule",
+		})
+		return
+	}
+
+	if rule.ID == "" {
+		c.JSON(http.StatusNotFound, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Rule not found",
+		})
+		return
+	}
+
+	if rule.CreatorID != c.GetString("user_id") || rule.CreatorID == "67aca2522c035f56a31b0d5c" {
+		c.JSON(http.StatusForbidden, types.FailResponse{
+			Status:  types.Fail,
+			Message: "You are not authorized to delete this rule",
 		})
 		return
 	}

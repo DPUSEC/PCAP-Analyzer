@@ -1,0 +1,1 @@
+alert http any any -> any any (msg:"PHP dosyası indirildi"; content:"Chris Sanders"; http_uri; sid:1000001; rev:1;)

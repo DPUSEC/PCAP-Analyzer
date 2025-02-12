@@ -182,14 +182,14 @@ func CreateDefaultRules() bool {
 	if err != nil {
 		return false
 	}
-
-	if len(defaultRules) != 1 {
+	fmt.Println(defaultRules)
+	if len(defaultRules) != 0 { // Default rule count - 1
 		_, err := database.DB.DeleteOne(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"})
 		if err != nil {
 			return false
 		}
 	}
-
+	fmt.Println(defaultRules)
 	_, err = database.DB.InsertOne(schemas.Rules{
 		Name:        "Php Uploaded",
 		Description: "Php File Upload Detection Alert",
@@ -199,11 +199,7 @@ func CreateDefaultRules() bool {
 		UpdatedAt:   time.Now(),
 	})
 	// Diğer rule'lar buraya gelecek.
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func GetAlertsFromSuricataLogs(logs []string) (alertlist []schemas.Alert) {
