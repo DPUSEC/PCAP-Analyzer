@@ -123,6 +123,18 @@ func GetRules(c *gin.Context) {
 		return
 	}
 
+	defaultRules := []TempRules{}
+	err = database.DB.FindAll(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"}, &defaultRules)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.FailResponse{
+			Status:  types.Fail,
+			Message: "Failed to get rules",
+		})
+		return
+	}
+
+	rules = append(rules, defaultRules...)
+
 	c.JSON(http.StatusOK, gin.H{
 		"Status": types.Success,
 		"Rules":  rules,
