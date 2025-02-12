@@ -1,0 +1,12 @@
+model AnalysisResult {
+  id        String   @id @default(uuid())
+  timestamp DateTime
+  src_ip    String
+  src_port  Int
+  dest_ip   String
+  dest_port Int
+  proto     String
+  signature String
+  severity  Int
+  category  String?
+} 
