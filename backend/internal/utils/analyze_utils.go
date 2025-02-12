@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"pcap-analyzer/internal/database"
 	"pcap-analyzer/internal/schemas"
 	"pcap-analyzer/internal/types"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func IsPrintable(s string) bool { //Print edilebilir karakterler için kontrol fonksiyonu
@@ -170,6 +172,38 @@ func getBoolValue(v interface{}) bool {
 	default:
 		return false
 	}
+}
+
+func CreateDefaultRules() bool {
+	database.DB.SetCollection("rules")
+
+	defaultRules := []schemas.Rules{}
+	err := database.DB.FindAll(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"}, &defaultRules)
+	if err != nil {
+		return false
+	}
+
+	if len(defaultRules) != 1 {
+		_, err := database.DB.DeleteOne(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"})
+		if err != nil {
+			return false
+		}
+	}
+
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Php Uploaded",
+		Description: "Php File Upload Detection Alert",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/php-upload.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	// Diğer rule'lar buraya gelecek.
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func GetAlertsFromSuricataLogs(logs []string) (alertlist []schemas.Alert) {

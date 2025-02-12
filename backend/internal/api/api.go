@@ -16,6 +16,7 @@ import (
 	"pcap-analyzer/internal/middleware"
 	"pcap-analyzer/internal/routes"
 	"pcap-analyzer/internal/types"
+	"pcap-analyzer/internal/utils"
 )
 
 // Sample Code
@@ -47,6 +48,12 @@ func Version(c *gin.Context) {
 
 func StartApiServer() {
 	slog.Info("Starting REST API server")
+
+	if utils.CreateDefaultRules() {
+		slog.Info("Default rules created successfully")
+	} else {
+		slog.Error("Default rules could not be created")
+	}
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
