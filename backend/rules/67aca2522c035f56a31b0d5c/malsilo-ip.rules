@@ -1,0 +1,23 @@
+
+#####################################################
+#         MalSilo Suricata IP rules set             #
+#####################################################
+#                                                   #
+# Dataset generated @ 2022-12-01 11:30:04 (UTC)     #
+#                                                   #
+# Use these rules at your own risk, for any         #
+# re-publishing or integration into other           #
+# datasets please contact malsilo [at] tuta .io     #
+#                                                   #
+#####################################################
+#
+#
+
+alert tcp any any -> 41.216.183.175 4404 (msg:"MalSilo MALWARE (coinminer) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000004; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family coinminer, updated_at 2022_12_01;)
+alert tcp any any -> 171.22.30.147 80 (msg:"MalSilo MALWARE (andromeda) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000005; rev:1; metadata: tag peexe32,tag pegui,tag assembly, created_at 2022_12_01, malware_family andromeda, updated_at 2022_12_01;)
+alert tcp any any -> 41.216.183.52 9882 (msg:"MalSilo MALWARE (emotet) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000006; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family emotet, updated_at 2022_12_01;)
+alert tcp any any -> 89.208.106.66 4691 (msg:"MalSilo MALWARE (generic) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000007; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family generic, updated_at 2022_12_01;)
+alert tcp any any -> 91.212.166.11 47242 (msg:"MalSilo MALWARE (generic) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000008; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family generic, updated_at 2022_12_01;)
+alert tcp any any -> 195.2.93.22 4193 (msg:"MalSilo MALWARE (jaik) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000009; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family jaik, updated_at 2022_12_01;)
+alert tcp any any -> 89.22.225.242 4193 (msg:"MalSilo MALWARE (jaik) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000010; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family jaik, updated_at 2022_12_01;)
+alert tcp any any -> 79.137.192.57 48771 (msg:"MalSilo MALWARE (sabsik) C&C Detected"; flow:established,to_server; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:command-and-control; sid:5000011; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family sabsik, updated_at 2022_12_01;)
