@@ -210,25 +210,33 @@ func GetExportedFiles(c *gin.Context) {
 		return
 	}
 
-	if analysis.ID == "" || len(analysis.ExportedFiles) == 0 {
+	if analysis.ID == "" {
 		c.JSON(http.StatusNotFound, types.FailResponse{
 			Status:  types.Fail,
 			Message: "Analysis not found",
 		})
 		return
+	} else if len(analysis.ExportedFiles) == 0 {
+		c.JSON(http.StatusOK, types.FailResponse{
+			Status:  types.Fail,
+			Message: "No exported files found",
+		})
+		return
 	}
 
-	var exportedFileUrls []string
-	for _, file := range analysis.ExportedFiles {
-		exportedFileUrls = append(exportedFileUrls, config.GetEnv().ApiPrefix+"/analysis/"+analyzeId.Hex()+"/files/"+file+"/download")
-	}
+	// var exportedFiles []schemas.ExportedFiles
+	// for _, file := range analysis.ExportedFiles {
+	// 	var temp schemas.ExportedFiles
+	// 	temp.FileName = file.FileName
+	// 	temp.DownloadLink = config.GetEnv().ApiPrefix + "/analysis/" + analyzeId.Hex() + "/files/" + file.FileName + "/download"
+	// 	exportedFiles = append(exportedFiles, temp)
+	// }
 
 	// TODO(ahmet): Daha sonrasında doysanın meta bilgisini de döndürebiliriz,
 	// şimdilik sadece indirme URL'lerini ve isimlerini döndürüyoruz.
 	c.JSON(http.StatusOK, gin.H{
-		"Status":           types.Success,
-		"ExportedFileUrls": exportedFileUrls,
-		"ExportedFiles":    analysis.ExportedFiles,
+		"Status":        types.Success,
+		"ExportedFiles": analysis.ExportedFiles,
 	})
 }
 
@@ -511,13 +519,17 @@ func SuricataAnalysis(c *gin.Context) {
 		return
 	}
 
-	var exportedFileUrls []string
+	var totalExportedFiles []schemas.ExportedFiles
 	for _, file := range exportedFiles {
-		exportedFileUrls = append(exportedFileUrls, config.GetEnv().ApiPrefix+"/analysis/"+insertResult.InsertedID.(primitive.ObjectID).Hex()+"/files/"+file+"/download")
+		var temp schemas.ExportedFiles
+		temp.DownloadLink = config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex() + "/files/" + file.FileName + "/download"
+		temp.FileName = file.FileName
+		temp.InternalPath = file.InternalPath
+		totalExportedFiles = append(totalExportedFiles, temp)
 	}
 
 	uploadedFilePath := config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex() + "/download"
-	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath, "exported_files": exportedFiles}})
+	_, err = database.DB.UpdateOne(bson.M{"_id": insertResult.InsertedID}, bson.M{"$set": bson.M{"file_path": uploadedFilePath, "exported_files": totalExportedFiles}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
@@ -532,8 +544,7 @@ func SuricataAnalysis(c *gin.Context) {
 		"ResultId":         insertResult.InsertedID,
 		"ResultDetailsUrl": config.GetEnv().ApiPrefix + "/analysis/" + insertResult.InsertedID.(primitive.ObjectID).Hex(),
 		"PcapPath":         uploadedFilePath,
-		"ExportedFileUrls": exportedFileUrls,
-		"ExportedFiles":    exportedFiles,
+		"ExportedFiles":    totalExportedFiles,
 		"Alerts":           alerts,
 	})
 }
