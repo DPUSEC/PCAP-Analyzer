@@ -48,7 +48,7 @@ func ExtractCommandAndArg(payload string, keyword string) (string, string) { //K
 }
 
 // extractFilesUsingTshark, TShark komutunu kullanarak PCAP dosyasındaki tum protokoller uzerinden dosya cikarir
-func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList []string) {
+func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList []schemas.ExportedFiles) {
 	// Cikti dizini yoksa olusturuluyor
 	err := os.MkdirAll(outputDir, os.ModePerm)
 	if err != nil {
@@ -58,8 +58,9 @@ func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList [
 	for a := range tsharkProtocols {
 		// TShark komutunu olusturuyoruz: Protokol belirtmeden tum protokoller icin dosya cikar
 		tsharkCmd := fmt.Sprintf("tshark -r %s --export-objects %s,%s", pcapFilePath, tsharkProtocols[a], outputDir)
+		fmt.Println(tsharkCmd)
 
-		cmd := exec.Command("sh", "-c", tsharkCmd)
+		cmd := exec.Command("cmd", "/C", tsharkCmd)
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &out
@@ -78,7 +79,10 @@ func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList [
 		if err != nil {
 			slog.Error("Dosya adi degistirilirken hata olustu.")
 		}
-		exportedFileList = append(exportedFileList, newFileName)
+		var temp schemas.ExportedFiles
+		temp.FileName = newFileName
+		temp.InternalPath = outputDir + "/" + newFileName
+		exportedFileList = append(exportedFileList, temp)
 	}
 	return exportedFileList
 }
