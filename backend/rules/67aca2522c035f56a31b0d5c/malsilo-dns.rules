@@ -1,0 +1,19 @@
+
+#####################################################
+#         MalSilo Suricata DNS rules set            #
+#####################################################
+#                                                   #
+# Dataset generated @ 2022-12-01 11:30:04 (UTC)     #
+#                                                   #
+# Use these rules at your own risk, for any         #
+# re-publishing or integration into other           #
+# datasets please contact malsilo [at] tuta .io     #
+#                                                   #
+#####################################################
+#
+#
+
+alert dns $HOME_NET any -> any any (msg:"MalSilo MALWARE (adware) DNS Lookup"; dns_query; content:"host-host-file8.com"; nocase; depth:19; isdataat:!1,relative; fast_pattern; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:trojan-activity; sid:5000000; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family adware, updated_at 2022_12_01;)
+alert dns $HOME_NET any -> any any (msg:"MalSilo MALWARE (nanobot) DNS Lookup"; dns_query; content:"mark1234.duckdns.org"; nocase; depth:20; isdataat:!1,relative; fast_pattern; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:trojan-activity; sid:5000001; rev:1; metadata: tag peexe32,tag pegui,tag assembly, created_at 2022_12_01, malware_family nanobot, updated_at 2022_12_01;)
+alert dns $HOME_NET any -> any any (msg:"MalSilo MALWARE (generic) DNS Lookup"; dns_query; content:"host-file-host6.com"; nocase; depth:19; isdataat:!1,relative; fast_pattern; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:trojan-activity; sid:5000002; rev:1; metadata: tag peexe32,tag pegui, created_at 2022_12_01, malware_family generic, updated_at 2022_12_01;)
+alert dns $HOME_NET any -> any any (msg:"MalSilo MALWARE (tasker) DNS Lookup"; dns_query; content:"clipper.guru"; nocase; depth:12; isdataat:!1,relative; fast_pattern; reference:url,malsilo.gitlab.io/feeds/dumps/master-feed.json; classtype:trojan-activity; sid:5000003; rev:1; metadata: tag peexe32,tag pegui,tag assembly, created_at 2022_12_01, malware_family tasker, updated_at 2022_12_01;)

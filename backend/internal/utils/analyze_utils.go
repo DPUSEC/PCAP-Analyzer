@@ -60,9 +60,8 @@ func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList [
 	for a := range tsharkProtocols {
 		// TShark komutunu olusturuyoruz: Protokol belirtmeden tum protokoller icin dosya cikar
 		tsharkCmd := fmt.Sprintf("tshark -r %s --export-objects %s,%s", pcapFilePath, tsharkProtocols[a], outputDir)
-		fmt.Println(tsharkCmd)
 
-		cmd := exec.Command("cmd", "/C", tsharkCmd)
+		cmd := exec.Command("sh", "-c", tsharkCmd)
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &out
@@ -182,22 +181,85 @@ func CreateDefaultRules() bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println(defaultRules)
-	if len(defaultRules) != 0 { // Default rule count - 1
+	if len(defaultRules) != 8 { // Default rule count - 1
 		_, err := database.DB.DeleteOne(bson.M{"creator_id": "67aca2522c035f56a31b0d5c"})
 		if err != nil {
 			return false
 		}
 	}
-	fmt.Println(defaultRules)
 	_, err = database.DB.InsertOne(schemas.Rules{
-		Name:        "Php Uploaded",
-		Description: "Php File Upload Detection Alert",
+		Name:        "Abuse.ch SSL Blacklist - DEFAULT",
+		Description: "The SSL Blacklist (SSLBL) is a project of abuse.ch with the goal of detecting malicious SSL connections, by identifying and blacklisting SSL certificates used by botnet C&C servers. In addition, SSLBL identifies JA3 fingerprints that helps you to detect & block malware botnet C&C communication on the TCP layer. ",
 		CreatorID:   "67aca2522c035f56a31b0d5c",
-		Path:        "rules/67aca2522c035f56a31b0d5c/php-upload.rules",
+		Path:        "rules/67aca2522c035f56a31b0d5c/sslblacklist_tls_cert.rules",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Abuse.ch URLhaus Suricata Rules - DEFAULT",
+		Description: "URLhaus is a project from abuse.ch with the goal of sharing malicious URLs that are being used for malware distribution.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/urlhaus_suricata.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Commodity malware rules for URL - DEFAULT",
+		Description: "TCP/UDP, DNS and HTTP Windows threats artifacts observed at runtime.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/malsilo-url.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Commodity malware rules for IP - DEFAULT",
+		Description: "TCP/UDP, DNS and HTTP Windows threats artifacts observed at runtime.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/malsilo-ip.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Commodity malware rules for DNS - DEFAULT",
+		Description: "TCP/UDP, DNS and HTTP Windows threats artifacts observed at runtime.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/malsilo-dns.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Positive Technologies Attack Detection Team ruleset - DEFAULT",
+		Description: "The Attack Detection Team searches for new vulnerabilities and 0-days, reproduces it and creates PoC exploits to understand how these security flaws work and how related attacks can be detected on the network layer. Additionally, we are interested in malware and hackers' TTPs, so we develop Suricata rules for detecting all sorts of such activities.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/pt-rules.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Emerging Threats (ET) Open - DEFAULT",
+		Description: "It is a free and community-supported ruleset. Actively updated",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/emerging-all.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Abuse.ch Suricata JA3 Fingerprint Ruleset - DEFAULT",
+		Description: "If you are running Suricata, you can use the SSLBL's Suricata JA3 fingerprint ruleset to detect and/or block malicious SSL connections in your network based on the JA3 fingerprint. Please note that your need Suricata 4.1.0 or newer in order to use the JA3 fingerprint ruleset.",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/ja3_fingerprints.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+	_, err = database.DB.InsertOne(schemas.Rules{
+		Name:        "Suricata Default Rules - DEFAULT",
+		Description: "A set of default rules for Suricata",
+		CreatorID:   "67aca2522c035f56a31b0d5c",
+		Path:        "rules/67aca2522c035f56a31b0d5c/suricata-defaults.rules",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	})
+
 	// Diğer rule'lar buraya gelecek.
 	return err == nil
 }
