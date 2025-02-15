@@ -8,10 +8,5 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
-
-FROM nginx:alpine as production-stage
-
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+CMD ["npm", "run", "dev"] # We are in beta test now, for now this should be in dev mode.
