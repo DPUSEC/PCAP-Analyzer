@@ -417,7 +417,8 @@ func SuricataAnalysis(c *gin.Context) {
 	database.DB.SetCollection("rules")
 
 	var rules []schemas.Rules
-	err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}, "creator_id": c.GetString("user_id")}, &rules)
+	// err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}, "creator_id": c.GetString("user_id")}, &rules)
+	err := database.DB.FindAll(bson.M{"_id": bson.M{"$in": ruleIds}, "$or": []bson.M{{"creator_id": c.GetString("user_id")}, {"creator_id": "67aca2522c035f56a31b0d5c"}}}, &rules)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, types.FailResponse{
 			Status:  types.Fail,
