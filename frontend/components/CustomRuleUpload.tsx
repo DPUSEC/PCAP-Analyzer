@@ -70,7 +70,7 @@ export function CustomRuleUpload() {
               </div>
               <textarea name="description" placeholder="Enter the description of the rule" required className="w-full border-2 border-gray-300 rounded-md p-2 mt-4 text-black" />
               <button type="submit" className="mt-2 px-4 py-2 bg-orange-500 text-black rounded-md">
-                Yükle
+                Import
               </button>
             </form>
           </>
