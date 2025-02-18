@@ -8,6 +8,7 @@ RUN go mod tidy
 RUN go build -o app-server
 
 WORKDIR /app
+COPY ./rules /app/rules
 RUN mv /build/app-server /app/app-server
 RUN rm -rf /build
 
