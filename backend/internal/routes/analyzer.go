@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -480,11 +481,14 @@ func SuricataAnalysis(c *gin.Context) {
 	}
 
 	for _, rule := range rules {
-		suricataCmd := exec.Command("suricata", "-r", userFolder+"/"+uploadedFileName, "-S", rule.Path, "-l", outputDir)
-		suricataCmd.Stdout = os.Stdout
-		suricataCmd.Stderr = os.Stderr
+		suricataCmd := fmt.Sprintf("suricata -r %s -S %s -l %s", userFolder+"/"+uploadedFileName, rule.Path, outputDir)
 
-		err = suricataCmd.Run()
+		cmd := exec.Command("sh", "-c", suricataCmd)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &out
+
+		err = cmd.Run()
 		if err != nil {
 			slog.Error("Suricata çalıştırılırken bir hata oluştu.")
 			c.JSON(http.StatusInternalServerError, types.FailResponse{

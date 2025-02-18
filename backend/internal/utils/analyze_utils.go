@@ -61,7 +61,7 @@ func ExtractFilesUsingTshark(pcapFilePath, outputDir string) (exportedFileList [
 		// TShark komutunu olusturuyoruz: Protokol belirtmeden tum protokoller icin dosya cikar
 		tsharkCmd := fmt.Sprintf("tshark -r %s --export-objects %s,%s", pcapFilePath, tsharkProtocols[a], outputDir)
 
-		cmd := exec.Command("cmd", "/C", tsharkCmd)
+		cmd := exec.Command("sh", "-c", tsharkCmd)
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		cmd.Stderr = &out
