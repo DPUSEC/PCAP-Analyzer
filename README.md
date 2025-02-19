@@ -21,13 +21,25 @@ After cloning the project, run the following command to install the dependencies
 
 sudo apt update
 
-sudo apt install docker.io docker-compose
+sudo apt install docker.io 
+sudo systemctl enable docker
+sudo systemctl start docker
+
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+docker compose version
+
 
 git clone https://github.com/DPUSEC/pcap-analyzer.git
 
 cd pcap-analyzer/
 
 sudo docker-compose up -d --build
+
 
 This command will run the project on 127.0.0.1:3000.
 
