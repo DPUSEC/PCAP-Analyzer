@@ -6,11 +6,17 @@ This project was developed by Dumlupınar University Cyber Security Student Comm
 
 # 🚀 Features
 PCAP File Analysis: Analyzes network traffic with Suricata rules.
+
 PCAP File Export: Allows you to download files passed in PCAP.
+
 Simple and Detailed Views: Provides simple and detailed analysis reports for users.
+
 Visualization: Shows statistical information about network traffic with graphs.
+
 Custom Rule Upload: Users can upload their own security rules.
+
 Filtering and Sorting: It can filter according to criteria such as source IP, destination IP, protocol, attack type.
+
 Authorization System: Analysis results are stored securely with the user login system.
 
 # 🛠️ Installation and Use
