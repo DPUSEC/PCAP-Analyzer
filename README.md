@@ -175,7 +175,8 @@ This project was developed by DPUSEC Development Team:
 
 👨‍💻 Baris Azar
 
-👨‍💻 Abdullah Ahmet Durmaz
+👨‍💻 [Abdullah Ahmet Durmaz](https://www.linkedin.com/in/durmazdev/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
+
 
 👨‍💻 Ali Umut Soran
 
