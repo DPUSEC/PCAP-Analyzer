@@ -138,14 +138,6 @@ export function AnalysisResultsDetailed() {
   }, [filteredAndSortedResults])
 
 
-  const chartData4 = useMemo(() => {
-    const protocolCounts: { [key: string]: number } = {}
-    filteredAndSortedResults.forEach((result) => {
-      protocolCounts[result.DstPort] = (protocolCounts[result.DstPort] || 0) + 1
-    })
-    return Object.entries(protocolCounts).map(([name, value]) => ({ name, value }))
-  }, [filteredAndSortedResults])
-
   const chartData5 = useMemo(() => {
     const timestampCounts: { [key: string]: number } = {}
     filteredAndSortedResults.forEach((result) => {
@@ -249,21 +241,6 @@ export function AnalysisResultsDetailed() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-
-        <div className="w-1/4 text-center">
-          <h2 className="text-lg font-semibold mb-2">Destination Port</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={chartData4} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value">
-                {chartData4.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ color: '#000' }} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
       </div>
       
       <div className="w-full text-center">
@@ -305,9 +282,6 @@ export function AnalysisResultsDetailed() {
                   </p>
                   <p>
                     <span className="font-medium">Source:</span> {result.SrcIp}:{result.SrcPort}
-                  </p>
-                  <p>
-                    <span className="font-medium">Destination:</span> {result.DstIp}:{result.DstPort}
                   </p>
                   <p>
                     <span className="font-medium">Protocol:</span> {result.TransmissionProtocol}
