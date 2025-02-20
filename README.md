@@ -173,16 +173,15 @@ If you want to contribute to our projects, you can contact us or join our commun
 # 👨‍💻 Developer Team
 This project was developed by DPUSEC Development Team:
 
-👨‍💻 Baris Azar
+👨‍💻 [Baris Azar](https://www.linkedin.com/in/barisazar/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
 
 👨‍💻 [Abdullah Ahmet Durmaz](https://www.linkedin.com/in/durmazdev/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
 
+👨‍💻 [Ali Umut Soran](https://www.linkedin.com/in/aliumutsoran/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
 
-👨‍💻 Ali Umut Soran
+👨‍💻 [Salih Doğan Bülbül](https://www.linkedin.com/in/salihdo%C4%9Fanb%C3%BClb%C3%BCl/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
 
-👨‍💻 Salih Doğan Bülbül
-
-👨‍💻 Yusuf Can Çakır
+👨‍💻 [Yusuf Can Çakır](https://www.linkedin.com/in/yusufcannc/?lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BE01UFRvyST2TpowFyvwYyw%3D%3D)
 
 If you want to contribute, you can submit a pull request on GitHub!
 
